@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>店铺设置</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    background: #e9e9e9;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+    -webkit-user-select: none; user-select: none;
+  }
+  input, textarea { border: none; outline: none; background: none; font-family: inherit; -webkit-user-select: auto; user-select: auto; }
+  button { border: none; background: none; cursor: pointer; font-family: inherit; }
+
+  .page {
+    max-width: 414px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #F5F5F5;
+    padding-bottom: 90px;
+    position: relative;
+  }
+  .nav {
+    display: flex; align-items: center;
+    padding: 14px 14px;
+    background: #fff;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .nav-btn { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #F0F0F0; }
+  .nav-btn svg { width: 18px; height: 18px; color: #333; }
+  .nav-title { flex: 1; text-align: center; font-size: 17px; font-weight: 600; letter-spacing: 1px; }
+
+  .block {
+    margin: 14px 14px 0;
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+  }
+  .block-head { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 14px; display: flex; align-items: center; }
+  .block-head::before { content: ''; width: 4px; height: 14px; border-radius: 2px; background: #6B7B3C; margin-right: 8px; }
+
+  /* 头像 */
+  .avatar-block { display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+  .avatar-wrap { position: relative; cursor: pointer; }
+  .avatar {
+    width: 90px; height: 90px; border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 14px rgba(0,0,0,.15);
+    display: block;
+    background: #eee;
+  }
+  .avatar-cam {
+    position: absolute; right: 0; bottom: 0;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #6B7B3C;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid #fff;
+  }
+  .avatar-cam svg { width: 15px; height: 15px; color: #fff; }
+  .avatar-tip { margin-top: 12px; font-size: 12.5px; color: #999; }
+
+  /* 表单行 */
+  .form-row { display: flex; align-items: center; padding: 13px 0; border-bottom: 1px solid #F3F3F3; }
+  .form-row:last-child { border-bottom: none; }
+  .form-label { width: 86px; font-size: 14px; color: #333; flex-shrink: 0; }
+  .form-input { flex: 1; font-size: 14px; color: #1a1a1a; }
+  .form-input::placeholder { color: #bbb; }
+  .form-input[type=tel] { letter-spacing: .5px; }
+
+  /* 收款码设置 */
+  .qr-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #F3F3F3; }
+  .qr-row:last-child { border-bottom: none; }
+  .qr-label { width: 86px; font-size: 14px; color: #333; flex-shrink: 0; }
+  .qr-thumb {
+    width: 56px; height: 56px; border-radius: 9px;
+    background: #f4f4f2;
+    border: 1px dashed #ccc;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; cursor: zoom-in; position: relative;
+    font-size: 10.5px; color: #aaa; text-align: center; line-height: 1.4;
+  }
+  .qr-thumb img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .qr-thumb.img img { display: block; }
+  .qr-thumb.img { border: none; }
+  .qr-edit { margin-left: auto; }
+  .edit-btn {
+    font-size: 12.5px; color: #6B7B3C;
+    border: 1px solid #B9C291; border-radius: 8px;
+    padding: 6px 14px; font-weight: 600;
+    transition: all .15s;
+  }
+  .edit-btn:active { background: #EFF3E3; }
+
+  .pay-tip { font-size: 12px; color: #999; margin:-4px 0 4px; line-height: 1.6; }
+
+  /* 底部保存 */
+  .footer-bar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 414px;
+    background: #fff;
+    border-top: 1px solid #eee;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    z-index: 60;
+  }
+  .save-btn {
+    width: 100%; padding: 14px 0; border-radius: 12px;
+    background: #6B7B3C; color: #fff;
+    font-size: 16px; font-weight: 700; letter-spacing: 2px;
+    transition: transform .15s;
+  }
+  .save-btn:active { transform: scale(.98); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(8px);
+    background: rgba(0,0,0,.72); color: #fff;
+    font-size: 12.5px; padding: 9px 18px; border-radius: 20px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* 放大预览 */
+  .viewer {
+    position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,.86);
+    display: none; align-items: center; justify-content: center; flex-direction: column;
+    padding: 30px;
+  }
+  .viewer.show { display: flex; }
+  .viewer-img { max-width: 300px; max-height: 300px; background: #fff; border-radius: 14px; padding: 12px; }
+  .viewer-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .viewer-tip { color: #fff; margin-top: 16px; font-size: 14px; }
+  .viewer-sub { color: rgba(255,255,255,.75); margin-top: 6px; font-size: 12px; }
+  .viewer-close { margin-top: 22px; color: #fff; font-size: 13px; border: 1px solid rgba(255,255,255,.5); border-radius: 8px; padding: 8px 26px; }
+  .viewer-close:active { background: rgba(255,255,255,.15); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="nav">
+    <button class="nav-btn" onclick="history.back()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="nav-title">店铺设置</div>
+  </header>
+
+  <!-- 头像 -->
+  <section class="block avatar-block">
+    <div class="avatar-wrap" id="avatarWrap">
+      <img class="avatar" id="avatarImg" alt="店铺头像">
+      <div class="avatar-cam">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 8v8M8 12h8"/></svg>
+      </div>
+    </div>
+    <div class="avatar-tip">点击更换店铺头像</div>
+  </section>
+
+  <!-- 店铺信息 -->
+  <section class="block">
+    <div class="block-head">店铺信息</div>
+    <div class="form-row">
+      <span class="form-label">店铺昵称</span>
+      <input class="form-input" id="nick" placeholder="请输入店铺昵称" maxlength="20">
+    </div>
+    <div class="form-row">
+      <span class="form-label">联系电话</span>
+      <input class="form-input" id="phone" type="tel" placeholder="请输入联系电话" maxlength="11">
+    </div>
+  </section>
+
+  <!-- 收款码设置 -->
+  <section class="block">
+    <div class="block-head">收款码设置</div>
+    <p class="pay-tip">点击二维码缩略图可放大预览，点击「我的码」修改收款码。</p>
+
+    <div class="qr-row">
+      <span class="form-label">微信收款码</span>
+      <div class="qr-thumb" id="wxThumb"><span>未上传<br>微信收款码</span><img id="wxQrImg" alt="微信收款码"></div>
+      <div class="qr-edit"><button class="edit-btn" id="wxEdit">我的码</button></div>
+    </div>
+    <div class="qr-row">
+      <span class="form-label">支付宝收款码</span>
+      <div class="qr-thumb" id="aliThumb"><span>未上传<br>支付宝收款码</span><img id="aliQrImg" alt="支付宝收款码"></div>
+      <div class="qr-edit"><button class="edit-btn" id="aliEdit">我的码</button></div>
+    </div>
+  </section>
+
+  <!-- 底部保存 -->
+  <div class="footer-bar">
+    <button class="save-btn" id="saveBtn">保存</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- 放大预览 -->
+  <div class="viewer" id="viewer">
+    <div class="viewer-img"><img id="viewerImg" alt=""></div>
+    <div class="viewer-tip" id="viewerTip"></div>
+    <div class="viewer-sub">请使用对应App扫码支付</div>
+    <button class="viewer-close" id="viewerClose">关闭</button>
+  </div>
+
+  <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+  <input type="file" id="wxInput" accept="image/*" style="display:none;">
+  <input type="file" id="aliInput" accept="image/*" style="display:none;">
+</div>
+
+<script>
+  var SHOP_KEY = "gm_shop";
+  var DEFAULT_AVATAR = "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Boutique%20shop%20wooden%20shelves%20display%20with%20glass%20jars%20of%20natural%20skincare%20products%20and%20green%20plants%2C%20warm%20cozy%20store%20interior%2C%20photorealistic&image_size=square";
+
+  // ---------- 读取设置 ----------
+  function loadShop() {
+    var raw = localStorage.getItem(SHOP_KEY);
+    if (raw) { try { return JSON.parse(raw); } catch (e) {} }
+    return { nick: "精品生活馆", phone: "", avatar: DEFAULT_AVATAR, wxQr: null, aliQr: null };
+  }
+  var shop = loadShop();
+  function saveShop() { localStorage.setItem(SHOP_KEY, JSON.stringify(shop)); }
+
+  // 填充
+  document.getElementById('avatarImg').src = shop.avatar || DEFAULT_AVATAR;
+  document.getElementById('nick').value = shop.nick || "";
+  document.getElementById('phone').value = shop.phone || "";
+
+  var wxState = shop.wxQr ? "img" : "";
+  var aliState = shop.aliQr ? "img" : "";
+  function applyQr(kind) {
+    if (kind === "wx") {
+      var el = document.getElementById('wxThumb');
+      if (shop.wxQr) { el.classList.add('img'); el.querySelector('span').style.display = 'none'; document.getElementById('wxQrImg').src = shop.wxQr; }
+    } else {
+      var el = document.getElementById('aliThumb');
+      if (shop.aliQr) { el.classList.add('img'); el.querySelector('span').style.display = 'none'; document.getElementById('aliQrImg').src = shop.aliQr; }
+    }
+  }
+  applyQr("wx"); applyQr("ali");
+
+  // ---------- toast ----------
+  var toast = document.getElementById('toast');
+  var timer = null;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.classList.remove('show'); }, 1600);
+  }
+
+  // ---------- 上传头像 ----------
+  document.getElementById('avatarWrap').addEventListener('click', function () { document.getElementById('avatarInput').click(); });
+  bindFileReader('avatarInput', function (dataURL) { shop.avatar = dataURL; document.getElementById('avatarImg').src = dataURL; });
+
+  // ---------- 上传/修改收款码 ----------
+  document.getElementById('wxEdit').addEventListener('click', function (e) { e.stopPropagation(); document.getElementById('wxInput').click(); });
+  document.getElementById('aliEdit').addEventListener('click', function (e) { e.stopPropagation(); document.getElementById('aliInput').click(); });
+  bindFileReader('wxInput', function (dataURL) {
+    shop.wxQr = dataURL;
+    document.getElementById('wxThumb').classList.add('img');
+    document.getElementById('wxThumb').querySelector('span').style.display = 'none';
+    document.getElementById('wxQrImg').src = dataURL;
+    showToast('微信收款码已更新');
+  });
+  bindFileReader('aliInput', function (dataURL) {
+    shop.aliQr = dataURL;
+    document.getElementById('aliThumb').classList.add('img');
+    document.getElementById('aliThumb').querySelector('span').style.display = 'none';
+    document.getElementById('aliQrImg').src = dataURL;
+    showToast('支付宝收款码已更新');
+  });
+
+  function bindFileReader(inputId, onLoad) {
+    var input = document.getElementById(inputId);
+    input.addEventListener('change', function () {
+      var f = input.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function (e) { onLoad(e.target.result); };
+      reader.readAsDataURL(f);
+      input.value = "";
+    });
+  }
+
+  // ---------- 放大预览 ----------
+  var viewer = document.getElementById('viewer');
+  var viewerImg = document.getElementById('viewerImg');
+  var viewerTip = document.getElementById('viewerTip');
+  function openViewer(src, tip) {
+    viewerImg.src = src;
+    viewerTip.textContent = tip;
+    viewer.classList.add('show');
+  }
+  document.getElementById('wxThumb').addEventListener('click', function () {
+    var src = shop.wxQr || null;
+    if (!src) { showToast('请先上传微信收款码'); return; }
+    openViewer(src, '微信收款码');
+  });
+  document.getElementById('aliThumb').addEventListener('click', function () {
+    var src = shop.aliQr || null;
+    if (!src) { showToast('请先上传支付宝收款码'); return; }
+    openViewer(src, '支付宝收款码');
+  });
+  document.getElementById('viewerClose').addEventListener('click', function () { viewer.classList.remove('show'); });
+  viewer.addEventListener('click', function (e) { if (e.target === viewer) viewer.classList.remove('show'); });
+
+  // ---------- 保存 ----------
+  document.getElementById('saveBtn').addEventListener('click', function () {
+    shop.nick = document.getElementById('nick').value.trim();
+    shop.phone = document.getElementById('phone').value.trim();
+    if (!shop.nick) { showToast('请填写店铺昵称'); return; }
+    if (!shop.phone) { showToast('请填写联系电话'); return; }
+    if (!/^1\d{10}$/.test(shop.phone)) { showToast('请输入正确的11位手机号'); return; }
+    saveShop();
+    showToast('保存成功');
+  });
+</script>
+</body>
+</html>
