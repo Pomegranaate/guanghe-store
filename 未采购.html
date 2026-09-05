@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>未采购</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    background: #e9e9e9;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { border: none; background: none; cursor: pointer; font-family: inherit; }
+
+  .page {
+    max-width: 414px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #F5F5F5;
+    padding-bottom: 40px;
+    position: relative;
+  }
+  .nav {
+    display: flex; align-items: center;
+    padding: 14px 14px;
+    background: #fff;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .nav-btn { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #F0F0F0; }
+  .nav-btn svg { width: 18px; height: 18px; color: #333; }
+  .nav-title { flex: 1; text-align: center; font-size: 17px; font-weight: 600; letter-spacing: 1px; color: #1a1a1a; }
+
+  .list-head { display: flex; align-items: center; gap: 8px; padding: 14px 16px 4px; font-size: 13px; color: #999; }
+  .list-head b { color: #D9820B; }
+
+  .order-list { padding: 8px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
+  .order-card { background: #fff; border-radius: 14px; padding: 13px; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
+  .order-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #F3F3F3; }
+  .order-no { font-size: 12.5px; color: #333; font-weight: 600; }
+  .status-badge { font-size: 11px; padding: 2px 9px; border-radius: 10px; }
+  .st-已处理 { background: #EAF0FB; color: #4A76D0; }
+  .st-未采购 { background: #FFF4E0; color: #D9820B; }
+
+  .order-main { padding: 10px 0; display: flex; gap: 11px; }
+  .order-img { width: 64px; height: 64px; border-radius: 9px; overflow: hidden; background: #f4f4f2; flex-shrink: 0; }
+  .order-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .order-info { flex: 1; min-width: 0; }
+  .order-cust { font-size: 13.5px; color: #222; font-weight: 600; }
+  .order-meta { font-size: 11.5px; color: #999; margin-top: 4px; }
+  .order-item { font-size: 12px; color: #555; margin-top: 4px; }
+  .order-amount { margin-top: 7px; display: flex; align-items: center; gap: 12px; }
+  .amt-down { font-size: 12px; color: #999; }
+  .amt-down b { font-size: 14px; color: #222; }
+  .amt-pay { font-size: 13px; color: #C81623; font-weight: 700; }
+
+  .order-foot { display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid #F3F3F3; }
+  .note { font-size: 12px; color: #999; }
+  .action-btn { font-size: 13px; font-weight: 600; padding: 8px 22px; border-radius: 8px; background: #6B7B3C; color: #fff; transition: transform .15s; }
+  .action-btn:active { transform: scale(.95); }
+
+  .empty { text-align: center; color: #bbb; padding: 70px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="nav">
+    <button class="nav-btn" onclick="history.back()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="nav-title">未采购</div>
+  </header>
+
+  <div class="list-head">以下订单待您采购，共 <b id="sum">0</b> 单</div>
+
+  <section class="order-list" id="orderList"></section>
+
+</div>
+
+<script>
+  var KEY = "gm_orders";
+  var IMG = {
+    sofa: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Nordic%20minimalist%20living%20room%20scene%2C%20light%20green%20fabric%20sofa%20with%20round%20solid%20wood%20coffee%20table%2C%20green%20plant%20and%20books%20on%20table%2C%20bright%20natural%20light%2C%20photorealistic%20furniture%20photography&image_size=square",
+    skincare: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Skincare%20set%20of%20three%20cosmetic%20bottles%20with%20gold%20caps%2C%20toner%20lotion%20and%20cream%20bottles%2C%20fresh%20light%20green%20background%20with%20green%20leaves%2C%20clean%20high-end%20product%20photography&image_size=square",
+    earbuds: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=White%20true%20wireless%20bluetooth%20earbuds%20with%20open%20charging%20case%2C%20minimalist%20product%20photography%20on%20pure%20white%20background%2C%20clean%20studio%20lighting&image_size=square",
+    nuts: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Daily%20mixed%20nuts%20and%20dried%20fruits%20snack%2C%20almonds%20cashews%20and%20walnuts%20in%20white%20bowl%20beside%20kraft%20paper%20bag%2C%20bright%20fresh%20food%20photography&image_size=square"
+  };
+  var SEED = [
+    { id: "OR20260905001", cust: "李一", item: "北欧简约实木茶几客厅家具", cat: "家居生活", img: IMG.sofa,     down: "399.00", pay: "199.00", date: "2026-09-05 10:24", status: "待处理" },
+    { id: "OR20260905002", cust: "王芳", item: "真无线蓝牙耳机降噪运动耳机", cat: "数码配件", img: IMG.earbuds, down: "399.00", pay: "199.00", date: "2026-09-05 09:12", status: "待处理" },
+    { id: "OR20260904003", cust: "张敏", item: "保湿补水护肤套装水乳套装", cat: "美妆护理", img: IMG.skincare, down: "399.00", pay: "199.00", date: "2026-09-04 16:40", status: "未采购" },
+    { id: "OR20260904004", cust: "刘强", item: "每日坚果混合果干零食大礼包", cat: "食品饮料", img: IMG.nuts,     down: "399.00", pay: "199.00", date: "2026-09-04 14:05", status: "采购中" },
+    { id: "OR20260903005", cust: "陈静", item: "北欧简约实木茶几客厅家具", cat: "家居生活", img: IMG.sofa,     down: "399.00", pay: "199.00", date: "2026-09-03 20:18", status: "已采购" }
+  ];
+  function loadOrders() {
+    var raw = localStorage.getItem(KEY);
+    if (raw) { try { return JSON.parse(raw); } catch (e) {} }
+    localStorage.setItem(KEY, JSON.stringify(SEED));
+    return SEED.slice();
+  }
+
+  var orders = loadOrders();
+  // 未采购页展示：已处理 + 未采购（已确认、待采购）
+  var list = orders.filter(function (o) { return o.status === "已处理" || o.status === "未采购"; });
+  document.getElementById('sum').textContent = list.length;
+
+  var html = "";
+  if (!list.length) {
+    html = '<div class="empty">暂无待采购订单</div>';
+  } else {
+    list.forEach(function (o) {
+      html +=
+        '<div class="order-card">' +
+          '<div class="order-head">' +
+            '<span class="order-no">订单号 ' + o.id + '</span>' +
+            '<span class="status-badge st-' + o.status + '">' + o.status + '</span>' +
+          '</div>' +
+          '<div class="order-main">' +
+            '<div class="order-img"><img src="' + o.img + '" alt=""></div>' +
+            '<div class="order-info">' +
+              '<div class="order-cust">下级：' + o.cust + ' · ' + o.cat + '</div>' +
+              '<div class="order-meta">' + o.date + '</div>' +
+              '<div class="order-item">' + o.item + '</div>' +
+              '<div class="order-amount">' +
+                '<span class="amt-down">下级支付 <b>¥' + o.down + '</b></span>' +
+                '<span class="amt-pay">应付 ¥' + o.pay + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="order-foot">' +
+            '<span class="note">待采购</span>' +
+            '<button class="action-btn" data-id="' + o.id + '">去采购</button>' +
+          '</div>' +
+        '</div>';
+    });
+  }
+  document.getElementById('orderList').innerHTML = html;
+
+  document.querySelectorAll('.action-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      location.href = "订单详情.html?id=" + b.getAttribute('data-id');
+    });
+  });
+</script>
+</body>
+</html>
