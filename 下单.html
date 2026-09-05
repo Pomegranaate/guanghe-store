@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>确认下单</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    background: #e9e9e9;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+  }
+  input { border: none; outline: none; background: none; font-family: inherit; -webkit-user-select: auto; user-select: auto; }
+  button { border: none; background: none; cursor: pointer; font-family: inherit; }
+  .page { max-width: 414px; margin: 0 auto; min-height: 100vh; background: #F5F5F5; padding-bottom: 88px; position: relative; }
+  .nav { display: flex; align-items: center; padding: 14px 14px; background: #fff; position: sticky; top: 0; z-index: 50; }
+  .nav-btn { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #F0F0F0; }
+  .nav-btn svg { width: 18px; height: 18px; color: #333; }
+  .nav-title { flex: 1; text-align: center; font-size: 17px; font-weight: 600; letter-spacing: 1px; }
+
+  /* 金额卡 */
+  .amount-card { margin: 14px 14px 0; background: linear-gradient(120deg, #6B7B3C, #4A5D23); border-radius: 14px; padding: 18px; color: #fff; }
+  .amount-label { font-size: 12px; opacity: .85; }
+  .amount-pay { font-size: 32px; font-weight: 700; margin-top: 4px; }
+  .amount-pay .yen { font-size: 18px; margin-right: 2px; }
+  .amount-note { margin-top: 8px; font-size: 12px; opacity: .9; }
+
+  /* 商品 */
+  .block { margin: 14px 14px 0; background: #fff; border-radius: 14px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
+  .block-head { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; display: flex; align-items: center; }
+  .block-head::before { content: ''; width: 4px; height: 14px; border-radius: 2px; background: #6B7B3C; margin-right: 8px; }
+  .goods { display: flex; gap: 12px; }
+  .goods-img { width: 86px; height: 86px; border-radius: 10px; overflow: hidden; background: #f4f4f2; flex-shrink: 0; }
+  .goods-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .goods-info { flex: 1; min-width: 0; }
+  .goods-name { font-size: 14px; color: #222; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .goods-sold { font-size: 12px; color: #999; margin-top: 6px; }
+  .goods-price { margin-top: 10px; font-size: 14px; color: #999; }
+  .goods-price b { font-size: 17px; color: #C81623; font-weight: 700; }
+
+  /* 收款码 */
+  .pay-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .pay-tab { flex: 1; text-align: center; padding: 9px 0; font-size: 13px; font-weight: 600; border-radius: 9px; background: #F3F3F3; color: #888; transition: all .15s; }
+  .pay-tab.active { background: #6B7B3C; color: #fff; }
+  .pay-panel { display: none; }
+  .pay-panel.active { display: block; }
+  .qr-box { text-align: center; cursor: zoom-in; }
+  .qr-img { width: 178px; height: 178px; margin: 4px auto 10px; background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 8px; position: relative; }
+  .qr-img svg { width: 100%; height: 100%; display: block; }
+  .qr-img .pay-qr-img { width: 100%; height: 100%; object-fit: contain; display: none; }
+  .qr-img.img svg { display: none; }
+  .qr-img.img .pay-qr-img { display: block; }
+  .qr-tip { font-size: 12.5px; color: #666; }
+  .qr-tip b { color: #222; }
+  .qr-enlarge { font-size: 11px; color: #B9C291; margin-top: 6px; }
+  .upstream-tag { display: inline-block; background: #FFF4E0; color: #D9820B; font-size: 11px; border-radius: 4px; padding: 2px 7px; margin-top: 9px; }
+
+  /* 上传凭证 */
+  .upload-box { border: 1.5px dashed #CCC; border-radius: 10px; padding: 16px; text-align: center; color: #999; font-size: 13px; cursor: pointer; transition: border-color .15s; }
+  .upload-box.active { border-color: #6B7B3C; }
+  .upload-box svg { width: 28px; height: 28px; color: #aaa; display: block; margin: 0 auto 8px; }
+  .upload-preview { display: none; width: 100%; border-radius: 10px; margin-top: 10px; }
+  .upload-preview.show { display: block; }
+  .uploaded-tip { display: none; font-size: 12px; color: #1F9D55; margin-top: 8px; align-items: center; gap: 5px; }
+  .uploaded-tip.show { display: flex; }
+  .uploaded-tip::before { content: '✓'; }
+  .wait-tip { font-size: 12px; color: #999; margin-top: 10px; line-height: 1.7; }
+
+  /* 收款码放大 */
+  .viewer { position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,.88); display: none; align-items: center; justify-content: center; flex-direction: column; padding: 30px; }
+  .viewer.show { display: flex; }
+  .viewer-img { max-width: 310px; max-height: 310px; background: #fff; border-radius: 14px; padding: 12px; }
+  .viewer-img img, .viewer-img svg { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .viewer-tip { color: #fff; margin-top: 16px; font-size: 15px; font-weight: 600; }
+  .viewer-sub { color: rgba(255,255,255,.75); margin-top: 6px; font-size: 12px; }
+  .viewer-close { margin-top: 22px; color: #fff; font-size: 13px; border: 1px solid rgba(255,255,255,.5); border-radius: 8px; padding: 8px 28px; }
+  .viewer-close:active { background: rgba(255,255,255,.15); }
+
+  /* 底部提交 */
+  .footer-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 414px; background: #fff; border-top: 1px solid #eee; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); z-index: 60; display: flex; align-items: center; gap: 12px; }
+  .bottom-amount { font-size: 13px; color: #333; }
+  .bottom-amount b { font-size: 19px; color: #C81623; }
+  .submit-btn { flex: 1; padding: 13px 0; border-radius: 12px; background: #6B7B3C; color: #fff; font-size: 16px; font-weight: 700; letter-spacing: 2px; transition: transform .15s, opacity .15s; }
+  .submit-btn:active { transform: scale(.98); }
+  .submit-btn:disabled { background: #C8CCB8; cursor: default; }
+
+  .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%) translateY(8px); background: rgba(0,0,0,.72); color: #fff; font-size: 12.5px; padding: 9px 18px; border-radius: 20px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 999; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="nav">
+    <button class="nav-btn" onclick="history.back()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="nav-title">确认下单</div>
+  </header>
+
+  <!-- 金额卡 -->
+  <section class="amount-card">
+    <div class="amount-label">本单应付金额</div>
+    <div class="amount-pay"><span class="yen">¥</span>399.00</div>
+    <div class="amount-note">线下向<b>上级(店主)</b>完成支付后，上传付款凭证等待审核</div>
+  </section>
+
+  <!-- 商品信息 -->
+  <section class="block">
+    <div class="block-head">商品信息</div>
+    <div class="goods">
+      <div class="goods-img"><img id="gImg" alt=""></div>
+      <div class="goods-info">
+        <div class="goods-name" id="gName"></div>
+        <div class="goods-sold" id="gSold"></div>
+        <div class="goods-price">下单价格 <b><span class="yen" style="font-size:14px">¥</span><span id="gPrice">399.00</span></b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 上级收款码 -->
+  <section class="block">
+    <div class="block-head">向上级付款</div>
+    <div class="pay-tabs">
+      <div class="pay-tab active" data-pay="wx">微信收款</div>
+      <div class="pay-tab" data-pay="ali">支付宝收款</div>
+    </div>
+
+    <div class="pay-panel active" id="panel-wx">
+      <div class="qr-box">
+        <div class="qr-img" id="wxBox">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" fill="#fff"/>
+            <g fill="#1a1a1a">
+              <rect x="20" y="20" width="46" height="46" rx="6"/><rect x="26" y="26" width="34" height="34" fill="#fff" rx="2"/>
+              <rect x="134" y="20" width="46" height="46" rx="6"/><rect x="140" y="26" width="34" height="34" fill="#fff" rx="2"/>
+              <rect x="20" y="134" width="46" height="46" rx="6"/><rect x="26" y="140" width="34" height="34" fill="#fff" rx="2"/>
+              <rect x="70" y="24" width="6" height="6"/><rect x="82" y="24" width="6" height="6"/><rect x="94" y="24" width="6" height="6"/>
+              <rect x="70" y="36" width="6" height="6"/><rect x="70" y="48" width="6" height="6"/><rect x="82" y="42" width="6" height="6"/>
+              <rect x="110" y="40" width="6" height="6"/><rect x="122" y="40" width="6" height="6"/><rect x="110" y="52" width="6" height="6"/>
+              <rect x="24" y="70" width="6" height="6"/><rect x="36" y="70" width="6" height="6"/><rect x="48" y="70" width="6" height="6"/>
+              <rect x="24" y="82" width="6" height="6"/><rect x="36" y="82" width="6" height="6"/><rect x="48" y="88" width="6" height="6"/>
+              <rect x="24" y="94" width="6" height="6"/><rect x="36" y="94" width="6" height="6"/>
+              <rect x="70" y="76" width="6" height="6"/><rect x="82" y="76" width="6" height="6"/><rect x="94" y="76" width="6" height="6"/>
+              <rect x="70" y="88" width="6" height="6"/><rect x="82" y="88" width="6" height="6"/>
+              <rect x="122" y="76" width="6" height="6"/><rect x="134" y="76" width="6" height="6"/><rect x="146" y="76" width="6" height="6"/>
+              <rect x="122" y="88" width="6" height="6"/><rect x="140" y="88" width="6" height="6"/>
+              <rect x="70" y="120" width="6" height="6"/><rect x="82" y="120" width="6" height="6"/><rect x="94" y="120" width="6" height="6"/>
+              <rect x="70" y="132" width="6" height="6"/><rect x="88" y="132" width="6" height="6"/><rect x="94" y="138" width="6" height="6"/>
+              <rect x="110" y="120" width="6" height="6"/><rect x="122" y="120" width="6" height="6"/><rect x="134" y="120" width="6" height="6"/>
+              <rect x="110" y="132" width="6" height="6"/><rect x="122" y="132" width="6" height="6"/><rect x="134" y="138" width="6" height="6"/>
+              <rect x="122" y="150" width="6" height="6"/><rect x="134" y="150" width="6" height="6"/>
+              <rect x="70" y="150" width="6" height="6"/><rect x="82" y="150" width="6" height="6"/><rect x="94" y="162" width="6" height="6"/>
+              <rect x="110" y="150" width="6" height="6"/><rect x="122" y="162" width="6" height="6"/>
+              <rect x="70" y="162" width="6" height="6"/><rect x="110" y="162" width="6" height="6"/>
+              <rect x="146" y="134" width="6" height="6"/><rect x="158" y="134" width="6" height="6"/>
+              <rect x="146" y="146" width="6" height="6"/><rect x="158" y="146" width="6" height="6"/>
+              <rect x="24" y="150" width="6" height="6"/><rect x="36" y="162" width="6" height="6"/><rect x="48" y="162" width="6" height="6"/>
+              <rect x="36" y="150" width="6" height="6"/><rect x="24" y="162" width="6" height="6"/>
+            </g>
+            <rect x="84" y="152" width="26" height="26" fill="#1a1a1a"/><text x="97" y="169" font-size="11" fill="#fff" text-anchor="middle" font-family="sans-serif">微信</text>
+          </svg>
+          <img class="pay-qr-img" id="wxQrImg" alt="微信收款码">
+        </div>
+        <div style="display:inline-block;width:100%"><span class="upstream-tag">上级微信收款码</span></div>
+        <div class="qr-tip">使用<b>微信</b>向上级支付 <b>¥399.00</b></div>
+        <div class="qr-enlarge">点击二维码可放大</div>
+      </div>
+    </div>
+
+    <div class="pay-panel" id="panel-ali">
+      <div class="qr-box">
+        <div class="qr-img" id="aliBox">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" fill="#fff"/>
+            <g fill="#1a1a1a">
+              <rect x="20" y="20" width="46" height="46" rx="6"/><rect x="26" y="26" width="34" height="34" fill="#fff" rx="2"/>
+              <rect x="134" y="134" width="46" height="46" rx="6"/><rect x="140" y="140" width="34" height="34" fill="#fff" rx="2"/>
+              <rect x="20" y="134" width="46" height="46" rx="6"/><rect x="26" y="140" width="34" height="34" fill="#fff" rx="2"/>
+              <rect x="68" y="20" width="6" height="6"/><rect x="80" y="20" width="6" height="6"/><rect x="92" y="26" width="6" height="6"/>
+              <rect x="68" y="32" width="6" height="6"/><rect x="80" y="38" width="6" height="6"/>
+              <rect x="134" y="20" width="6" height="6"/><rect x="152" y="20" width="6" height="6"/><rect x="146" y="32" width="6" height="6"/>
+              <rect x="134" y="32" width="6" height="6"/>
+              <rect x="20" y="68" width="6" height="6"/><rect x="32" y="68" width="6" height="6"/><rect x="44" y="74" width="6" height="6"/>
+              <rect x="20" y="80" width="6" height="6"/><rect x="32" y="86" width="6" height="6"/>
+              <rect x="68" y="68" width="6" height="6"/><rect x="86" y="68" width="6" height="6"/><rect x="104" y="68" width="6" height="6"/>
+              <rect x="80" y="80" width="6" height="6"/><rect x="98" y="80" width="6" height="6"/>
+              <rect x="122" y="68" width="6" height="6"/><rect x="134" y="74" width="6" height="6"/><rect x="146" y="68" width="6" height="6"/>
+              <rect x="122" y="86" width="6" height="6"/><rect x="140" y="86" width="6" height="6"/>
+              <rect x="68" y="104" width="6" height="6"/><rect x="80" y="104" width="6" height="6"/><rect x="92" y="104" width="6" height="6"/>
+              <rect x="68" y="116" width="6" height="6"/><rect x="86" y="116" width="6" height="6"/>
+              <rect x="122" y="104" width="6" height="6"/><rect x="134" y="104" width="6" height="6"/><rect x="146" y="104" width="6" height="6"/>
+              <rect x="122" y="116" width="6" height="6"/><rect x="134" y="116" width="6" height="6"/><rect x="146" y="116" width="6" height="6"/>
+              <rect x="68" y="152" width="6" height="6"/><rect x="86" y="158" width="6" height="6"/><rect x="104" y="152" width="6" height="6"/>
+              <rect x="122" y="152" width="6" height="6"/><rect x="140" y="158" width="6" height="6"/><rect x="152" y="158" width="6" height="6"/>
+            </g>
+            <rect x="74" y="44" width="52" height="52" fill="#1a1a1a"/><text x="100" y="76" font-size="11" fill="#fff" text-anchor="middle" font-family="sans-serif">支付宝</text>
+          </svg>
+          <img class="pay-qr-img" id="aliQrImg" alt="支付宝收款码">
+        </div>
+        <div style="display:inline-block;width:100%"><span class="upstream-tag">上级支付宝收款码</span></div>
+        <div class="qr-tip">使用<b>支付宝</b>向上级支付 <b>¥399.00</b></div>
+        <div class="qr-enlarge">点击二维码可放大</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 上传付款凭证 -->
+  <section class="block">
+    <div class="block-head">上传付款凭证</div>
+    <div class="upload-box" id="uploadBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/>
+      </svg>
+      点击上传付款凭证截图<br>支持 JPG / PNG
+      <img id="preview" class="upload-preview" alt="凭证预览">
+      <div class="uploaded-tip" id="uploadedTip">付款凭证已上传</div>
+    </div>
+    <div class="wait-tip">已线下向上级支付，上传凭证后等待<b>上级审核处理</b>，审核结果可在「我的-下单记录」中查看。</div>
+  </section>
+
+  <!-- 底部提交 -->
+  <div class="footer-bar">
+    <span class="bottom-amount">应付 <b>¥399.00</b></span>
+    <button class="submit-btn" id="submitBtn" disabled>提交凭证，等待审核</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <input type="file" id="fileInput" accept="image/*" style="display:none;">
+
+  <!-- 收款码放大 -->
+  <div class="viewer" id="viewer">
+    <div class="viewer-img" id="viewerBody"></div>
+    <div class="viewer-tip" id="viewerTip"></div>
+    <div class="viewer-sub">请使用对应App扫码支付</div>
+    <button class="viewer-close" id="viewerClose">关闭</button>
+  </div>
+</div>
+
+<script>
+  // ---------- 商品参数 ----------
+  var params = new URLSearchParams(location.search);
+  var item = {
+    name: params.get("name") || "温馨提示养护礼盒",
+    price: params.get("price") || "399.00",
+    img: params.get("img") || "",
+    sold: params.get("sold") || "已售 101"
+  };
+  // 下单金额统一为399
+  var DOWN_PRICE = "399.00";
+  document.getElementById('gImg').src = item.img;
+  document.getElementById('gName').textContent = item.name;
+  document.getElementById('gSold').textContent = item.sold;
+  document.getElementById('gPrice').textContent = item.price;
+
+  // ---------- 读取上级(店主)收款码，若店主设置了则替换 ----------
+  try {
+    var shop = JSON.parse(localStorage.getItem("gm_shop") || "null");
+    if (shop) {
+      if (shop.wxQr) { document.getElementById('wxQrImg').src = shop.wxQr; document.getElementById('wxBox').classList.add('img'); }
+      if (shop.aliQr) { document.getElementById('aliQrImg').src = shop.aliQr; document.getElementById('aliBox').classList.add('img'); }
+    }
+  } catch (e) {}
+
+  // 支付方式切换
+  document.querySelectorAll('.pay-tab').forEach(function (t) {
+    t.addEventListener('click', function () {
+      document.querySelectorAll('.pay-tab').forEach(function (x) { x.classList.remove('active'); });
+      document.querySelectorAll('.pay-panel').forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      document.getElementById('panel-' + t.getAttribute('data-pay')).classList.add('active');
+    });
+  });
+
+  // ---------- 收款码放大 ----------
+  var viewer = document.getElementById('viewer');
+  var viewerBody = document.getElementById('viewerBody');
+  var viewerTip = document.getElementById('viewerTip');
+  function openViewer(kind) {
+    var box = document.getElementById(kind + 'Box');
+    var img = box.querySelector('.pay-qr-img');
+    viewerBody.innerHTML = "";
+    if (img.src) { var i = document.createElement('img'); i.src = img.src; viewerBody.appendChild(i); }
+    else viewerBody.appendChild(box.querySelector('svg').cloneNode(true));
+    viewerTip.textContent = kind === "wx" ? "上级微信收款码" : "上级支付宝收款码";
+    viewer.classList.add('show');
+  }
+  document.getElementById('wxBox').addEventListener('click', function () { openViewer('wx'); });
+  document.getElementById('aliBox').addEventListener('click', function () { openViewer('ali'); });
+  document.getElementById('viewerClose').addEventListener('click', function () { viewer.classList.remove('show'); });
+  viewer.addEventListener('click', function (e) { if (e.target === viewer) viewer.classList.remove('show'); });
+
+  // ---------- 上传凭证 ----------
+  var fileInput = document.getElementById('fileInput');
+  var preview = document.getElementById('preview');
+  var uploadedTip = document.getElementById('uploadedTip');
+  var hasUpload = false;
+  var submitBtn = document.getElementById('submitBtn');
+  document.getElementById('uploadBox').addEventListener('click', function () { fileInput.click(); });
+  fileInput.addEventListener('change', function () {
+    var f = fileInput.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      preview.src = e.target.result;
+      preview.classList.add('show');
+      uploadedTip.classList.add('show');
+      document.getElementById('uploadBox').classList.add('active');
+      hasUpload = true;
+      submitBtn.disabled = false;
+    };
+    reader.readAsDataURL(f);
+  });
+
+  // ---------- 提交 ----------
+  var toast = document.getElementById('toast');
+  var timer = null;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.classList.remove('show'); }, 1800);
+  }
+
+  submitBtn.addEventListener('click', function () {
+    if (!hasUpload) { showToast("请先上传付款凭证"); return; }
+    // 写入下单记录
+    var key = "gm_buyer_orders";
+    var list = [];
+    try { list = JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) {}
+    var now = new Date();
+    function pad(n) { return n < 10 ? "0" + n : n; }
+    var dateStr = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes());
+    list.unshift({
+      id: "XD" + dateStr.replace(/[-: ]/g, ""),
+      item: item.name,
+      img: item.img,
+      price: DOWN_PRICE,
+      date: dateStr,
+      status: "待上级审核"
+    });
+    localStorage.setItem(key, JSON.stringify(list));
+    showToast("已提交，等待上级审核");
+    setTimeout(function () { location.href = "我的.html"; }, 1200);
+  });
+</script>
+</body>
+</html>
