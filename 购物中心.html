@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>购物中心</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    background: #e9e9e9;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { text-decoration: none; color: inherit; }
+  button { border: none; background: none; cursor: pointer; font-family: inherit; }
+
+  .page {
+    max-width: 414px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #F5F5F5;
+    padding-bottom: 96px;
+    position: relative;
+  }
+
+  /* ---------- 顶部导航 ---------- */
+  .nav {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 60;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px;
+    color: #fff;
+  }
+  .nav-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.18);
+  }
+  .nav-btn svg { width: 18px; height: 18px; }
+  .nav-title {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    font-size: 16px; font-weight: 600; letter-spacing: 1px; text-shadow: 0 1px 4px rgba(0,0,0,.25);
+  }
+
+  /* ---------- 店铺头部 ---------- */
+  .shop-hero {
+    position: relative;
+    padding: 64px 18px 56px;
+    background: #243d15;
+    overflow: hidden;
+  }
+  .shop-hero .bg {
+    position: absolute; inset: 0;
+    background-image: url('https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cozy%20boutique%20interior%20with%20dark%20green%20wall%2C%20wooden%20desk%20with%20green%20plants%20and%20books%2C%20warm%20natural%20light%20through%20window%2C%20black%20pendant%20hanging%20lamp%2C%20moody%20elegant%20atmosphere%2C%20photorealistic&image_size=landscape_4_3');
+    background-size: cover;
+    background-position: center;
+  }
+  .shop-hero .mask {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(20,34,10,.5) 0%, rgba(24,40,12,.35) 40%, rgba(26,42,13,.62) 100%);
+  }
+  .shop-info { position: relative; display: flex; align-items: center; gap: 14px; }
+  .shop-avatar {
+    width: 66px; height: 66px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,.9);
+    object-fit: cover;
+    background: #ddd;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(0,0,0,.28);
+  }
+  .shop-name { font-size: 19px; font-weight: 700; color: #fff; letter-spacing: .5px; }
+  .shop-id { font-size: 12px; color: rgba(255,255,255,.82); margin-top: 3px; }
+  .stars { display: flex; gap: 2px; margin-top: 7px; }
+  .stars svg { width: 13px; height: 13px; }
+  .star-txt { font-size: 11px; color: rgba(255,255,255,.9); margin-top: 4px; }
+
+  /* ---------- 分类卡片 ---------- */
+  .category-card {
+    position: relative;
+    margin-top: -34px;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -3px 14px rgba(0,0,0,.06);
+    position: relative;
+    z-index: 10;
+    padding: 6px 0 0;
+  }
+  .cat-tabs {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    padding: 6px 14px 0;
+    scrollbar-width: none;
+  }
+  .cat-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab {
+    flex-shrink: 0;
+    padding: 9px 11px 10px;
+    font-size: 14px; color: #888;
+    position: relative;
+    transition: color .15s;
+  }
+  .cat-tab.active { color: #111; font-weight: 700; }
+  .cat-tab.active::after {
+    content: '';
+    position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%);
+    width: 18px; height: 3px; border-radius: 2px;
+    background: #111;
+  }
+
+  /* ---------- 商品网格 ---------- */
+  .prod-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 14px 14px 6px;
+  }
+  .prod-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    padding-bottom: 10px;
+  }
+  .prod-img { aspect-ratio: 1; background: #f4f4f2; }
+  .prod-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .prod-name {
+    font-size: 14px; color: #222; line-height: 1.4;
+    padding: 9px 10px 0;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 39px;
+  }
+  .prod-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 10px 0;
+  }
+  .prod-price { font-size: 17px; font-weight: 700; color: #C81623; }
+  .prod-price .yen { font-size: 12px; margin-right: 1px; }
+  .prod-sold { font-size: 11px; color: #999; margin-top: 2px; }
+  .cart-btn {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #F1F1EC;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .cart-btn:active { transform: scale(.88); background: #e0e4d4; }
+  .cart-btn svg { width: 17px; height: 17px; color: #2D5016; }
+
+  /* 右侧悬浮购物车 */
+  .cart-float {
+    position: fixed; right: 16px; bottom: 108px; z-index: 90;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: linear-gradient(150deg, #6B7B3C, #2D5016);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 18px rgba(45,80,22,.35);
+    text-decoration: none;
+    transition: transform .15s;
+  }
+  .cart-float:active { transform: scale(.92); }
+  .cart-float svg { width: 26px; height: 26px; color: #fff; }
+  .cart-float .badge {
+    position: absolute; top: -3px; right: -3px;
+    min-width: 18px; height: 18px; padding: 0 5px;
+    border-radius: 9px;
+    background: #E02F2F; color: #fff;
+    font-size: 11px; line-height: 18px; text-align: center;
+    font-weight: 600;
+  }
+  .cart-float .hint {
+    position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);
+    width: 78px; text-align: center;
+    font-size: 11px; color: #2D5016; font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ---------- 底部导航 ---------- */
+  .tabbar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 414px;
+    background: #fff;
+    border-top: 1px solid #eee;
+    display: flex;
+    padding: 7px 0 calc(14px + env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .tab {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10px; color: #999;
+  }
+  .tab svg { width: 24px; height: 24px; }
+  .tab.active { color: #2D5016; font-weight: 600; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%) translateY(8px);
+    background: rgba(0,0,0,.72); color: #fff;
+    font-size: 12px; padding: 8px 16px; border-radius: 20px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 顶部导航 -->
+  <header class="nav">
+    <button class="nav-btn" onclick="history.back()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="nav-title">购物中心</div>
+    </header>
+
+  <!-- 店铺头部 -->
+  <section class="shop-hero">
+    <div class="bg"></div>
+    <div class="mask"></div>
+    <div class="shop-info">
+      <img class="shop-avatar" src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Boutique%20shop%20wooden%20shelves%20display%20with%20glass%20jars%20of%20natural%20skincare%20products%20and%20green%20plants%2C%20warm%20cozy%20store%20interior%2C%20photorealistic&image_size=square" alt="店铺头像">
+      <div>
+        <div class="shop-name">精品生活馆</div>
+        <div class="shop-id">ID: 100234</div>
+        <div class="stars">
+          <svg viewBox="0 0 24 24"><path fill="#F5B301" d="M12 2l2.95 6.35 6.63.8-4.9 4.58 1.32 6.57L12 17.02l-5.99 3.28 1.32-6.57L2.42 9.15l6.63-.8L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path fill="#F5B301" d="M12 2l2.95 6.35 6.63.8-4.9 4.58 1.32 6.57L12 17.02l-5.99 3.28 1.32-6.57L2.42 9.15l6.63-.8L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path fill="#F5B301" d="M12 2l2.95 6.35 6.63.8-4.9 4.58 1.32 6.57L12 17.02l-5.99 3.28 1.32-6.57L2.42 9.15l6.63-.8L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path fill="#F5B301" d="M12 2l2.95 6.35 6.63.8-4.9 4.58 1.32 6.57L12 17.02l-5.99 3.28 1.32-6.57L2.42 9.15l6.63-.8L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path fill="#F5B301" d="M12 2l2.95 6.35 6.63.8-4.9 4.58 1.32 6.57L12 17.02l-5.99 3.28 1.32-6.57L2.42 9.15l6.63-.8L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path fill="#F5B301" d="M12 2l2.95 6.35 6.63.8-4.9 4.58 1.32 6.57L12 17.02l-5.99 3.28 1.32-6.57L2.42 9.15l6.63-.8L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path fill="#F5B301" d="M12 2l2.95 6.35 6.63.8-4.9 4.58 1.32 6.57L12 17.02l-5.99 3.28 1.32-6.57L2.42 9.15l6.63-.8L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.6" d="M12 2l2.95 6.35 6.63.8-4.9 4.58 1.32 6.57L12 17.02l-5.99 3.28 1.32-6.57L2.42 9.15l6.63-.8L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.6" d="M12 2l2.95 6.35 6.63.8-4.9 4.58 1.32 6.57L12 17.02l-5.99 3.28 1.32-6.57L2.42 9.15l6.63-.8L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.6" d="M12 2l2.95 6.35 6.63.8-4.9 4.58 1.32 6.57L12 17.02l-5.99 3.28 1.32-6.57L2.42 9.15l6.63-.8L12 2z"/></svg>
+        </div>
+        <div class="star-txt">当前星级：7星</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 分类卡片 -->
+  <section class="category-card">
+    <div class="cat-tabs" id="catTabs">
+      <div class="cat-tab active">全部</div>
+      <div class="cat-tab">家居生活</div>
+      <div class="cat-tab">美妆护理</div>
+      <div class="cat-tab">数码配件</div>
+      <div class="cat-tab">服饰箱包</div>
+      <div class="cat-tab">食品饮料</div>
+    </div>
+  </section>
+
+  <!-- 商品网格 -->
+  <section class="prod-grid">
+    <div class="prod-card">
+      <div class="prod-img">
+        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Nordic%20minimalist%20living%20room%20scene%2C%20light%20green%20fabric%20sofa%20with%20round%20solid%20wood%20coffee%20table%2C%20green%20plant%20and%20books%20on%20table%2C%20bright%20natural%20light%2C%20photorealistic%20furniture%20photography&image_size=square" alt="北欧简约实木茶几客厅家具">
+      </div>
+      <div class="prod-name">北欧简约实木茶几客厅家具</div>
+      <div class="prod-bottom">
+        <div>
+          <div class="prod-price"><span class="yen">¥</span>299.00</div>
+          <div class="prod-sold">已售 324</div>
+        </div>
+        <button class="cart-btn" title="加入购物车">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 4h2l2.4 11.2a1 1 0 001 .8h9.4a1 1 0 001-.8L20 8H6"/>
+            <circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="prod-card">
+      <div class="prod-img">
+        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Skincare%20set%20of%20three%20cosmetic%20bottles%20with%20gold%20caps%2C%20toner%20lotion%20and%20cream%20bottles%2C%20fresh%20light%20green%20background%20with%20green%20leaves%2C%20clean%20high-end%20product%20photography&image_size=square" alt="保湿补水护肤套装水乳套装">
+      </div>
+      <div class="prod-name">保湿补水护肤套装水乳套装</div>
+      <div class="prod-bottom">
+        <div>
+          <div class="prod-price"><span class="yen">¥</span>189.00</div>
+          <div class="prod-sold">已售 532</div>
+        </div>
+        <button class="cart-btn" title="加入购物车">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 4h2l2.4 11.2a1 1 0 001 .8h9.4a1 1 0 001-.8L20 8H6"/>
+            <circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="prod-card">
+      <div class="prod-img">
+        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=White%20true%20wireless%20bluetooth%20earbuds%20with%20open%20charging%20case%2C%20minimalist%20product%20photography%20on%20pure%20white%20background%2C%20clean%20studio%20lighting&image_size=square" alt="真无线蓝牙耳机降噪运动耳机">
+      </div>
+      <div class="prod-name">真无线蓝牙耳机降噪运动耳机</div>
+      <div class="prod-bottom">
+        <div>
+          <div class="prod-price"><span class="yen">¥</span>159.00</div>
+          <div class="prod-sold">已售 324</div>
+        </div>
+        <button class="cart-btn" title="加入购物车">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 4h2l2.4 11.2a1 1 0 001 .8h9.4a1 1 0 001-.8L20 8H6"/>
+            <circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="prod-card">
+      <div class="prod-img">
+        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Daily%20mixed%20nuts%20and%20dried%20fruits%20snack%2C%20almonds%20cashews%20and%20walnuts%20in%20white%20bowl%20beside%20kraft%20paper%20bag%2C%20bright%20fresh%20food%20photography&image_size=square" alt="每日坚果混合果干零食大礼包">
+      </div>
+      <div class="prod-name">每日坚果混合果干零食大礼包</div>
+      <div class="prod-bottom">
+        <div>
+          <div class="prod-price"><span class="yen">¥</span>69.00</div>
+          <div class="prod-sold">已售 891</div>
+        </div>
+        <button class="cart-btn" title="加入购物车">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 4h2l2.4 11.2a1 1 0 001 .8h9.4a1 1 0 001-.8L20 8H6"/>
+            <circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 底部导航 -->
+  <nav class="tabbar">
+    <a class="tab" href="首页.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 10.5L12 3.5l9 7"/>
+        <path d="M5.5 9.5V20.5h13V9.5"/>
+      </svg>
+      <span>首页</span>
+    </a>
+    <a class="tab active" href="购物中心.html">
+      <svg viewBox="0 0 24 24">
+        <path fill="currentColor" d="M6 7.5h12l1.2 13.1a.9.9 0 01-.9 1H5.7a.9.9 0 01-.9-1L6 7.5z"/>
+        <path fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" d="M9 11V6a3 3 0 016 0v5"/>
+      </svg>
+      <span>购物中心</span>
+    </a>
+    <a class="tab" href="店铺管理.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.5 9.5L6 4h12l1.5 5.5"/>
+        <path d="M3.5 9.5a2 2 0 004 .6 2 2 0 004 .4 2 2 0 004-.4 2 2 0 004-.6l-1 3.2V20h-14v-7.3l-1-3.2z"/>
+        <path d="M9.5 20v-4.5h5V20"/>
+      </svg>
+      <span>店铺管理</span>
+    </a>
+    <a class="tab" href="我的.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="3.6"/>
+        <path d="M4.5 20.5c1.4-3.6 4.2-5.4 7.5-5.4s6.1 1.8 7.5 5.4"/>
+      </svg>
+      <span>我的</span>
+    </a>
+  </nav>
+
+  <!-- 右侧悬浮购物车 -->
+  <a class="cart-float" href="javascript:void(0)" id="cartFloat">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 4h2l2.4 11.2a1 1 0 001 .8h9.4a1 1 0 001-.8L20 8H6"/>
+      <circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/>
+    </svg>
+    <span class="badge" id="cartBadge">0</span>
+    <span class="hint">购物车</span>
+  </a>
+
+  <div class="toast" id="toast">已加入购物车</div>
+</div>
+
+<script>
+  // 分类Tab切换
+  var tabs = document.querySelectorAll('.cat-tab');
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+    });
+  });
+
+  // 加入购物车轻提示
+  var toast = document.getElementById('toast');
+  var timer = null;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.classList.remove('show'); }, 1200);
+  }
+  document.querySelectorAll('.cart-btn').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var card = btn.closest('.prod-card');
+      var data = readCard(card);
+      // 加入购物车计数
+      var n = parseInt(document.getElementById('cartBadge').textContent, 10) || 0;
+      document.getElementById('cartBadge').textContent = n + 1;
+      showToast('已加入购物车，可点击商品卡片去下单');
+    });
+  });
+
+  // 点击商品卡片进入下单页面
+  function readCard(card) {
+    return {
+      name: card.querySelector('.prod-name').textContent,
+      price: card.querySelector('.prod-price').textContent.replace(/\s/g, '').replace('¥', ''),
+      img: card.querySelector('img').src,
+      sold: card.querySelector('.prod-sold').textContent.replace(/\s/g, '')
+    };
+  }
+  document.querySelectorAll('.prod-card').forEach(function (card) {
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', function () {
+      var d = readCard(card);
+      var url = '下单.html?' +
+        'name=' + encodeURIComponent(d.name) +
+        '&price=' + encodeURIComponent(d.price) +
+        '&img=' + encodeURIComponent(d.img) +
+        '&sold=' + encodeURIComponent(d.sold);
+      location.href = url;
+    });
+  });
+
+  // 悬浮购物车
+  document.getElementById('cartFloat').addEventListener('click', function () {
+    var n = document.getElementById('cartBadge').textContent;
+    showToast('购物车共 ' + n + ' 件商品，点击商品卡片即可下单');
+  });
+</script>
+</body>
+</html>
