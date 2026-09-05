@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>商品管理</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    background: #e9e9e9;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { border: none; background: none; cursor: pointer; font-family: inherit; }
+
+  .page {
+    max-width: 414px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #F5F5F5;
+    padding-bottom: 40px;
+    position: relative;
+  }
+
+  /* ---------- 顶部导航 ---------- */
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 14px;
+    background: #fff;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .nav-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #F0F0F0;
+  }
+  .nav-btn svg { width: 18px; height: 18px; color: #333; }
+  .nav-title {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    font-size: 17px; font-weight: 600; letter-spacing: 1px; color: #1a1a1a;
+  }
+  .nav-right { width: 32px; }
+
+  /* ---------- 分类 Tab ---------- */
+  .cat-tabs {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    padding: 10px 14px 0;
+    background: #F5F5F5;
+    scrollbar-width: none;
+    position: sticky; top: 60px; z-index: 40;
+  }
+  .cat-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    font-size: 13.5px; color: #888;
+    background: #fff;
+    border-radius: 20px;
+    margin-right: 8px;
+    border: 1px solid #eee;
+    transition: all .15s;
+  }
+  .cat-tab.active { color: #fff; background: #6B7B3C; border-color: #6B7B3C; font-weight: 600; }
+
+  /* ---------- 商品列表 ---------- */
+  .prod-list { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .prod-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px;
+    display: flex; gap: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+  }
+  .prod-img {
+    width: 86px; height: 86px; border-radius: 10px; overflow: hidden;
+    background: #f4f4f2; flex-shrink: 0;
+  }
+  .prod-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .prod-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .prod-name { font-size: 14px; color: #222; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .prod-meta { margin-top: 6px; font-size: 12px; color: #999; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .prod-cat { background: #F1F3EA; color: #6B7B3C; border-radius: 4px; padding: 1px 6px; font-size: 11px; }
+  .prod-bottom { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 8px; }
+  .prod-price { font-size: 16px; font-weight: 700; color: #C81623; }
+  .prod-price .yen { font-size: 12px; margin-right: 1px; }
+  .prod-sold { font-size: 11px; color: #999; }
+
+  /* 状态徽章 */
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+  .badge.on { background: #E4F4E9; color: #1F9D55; }
+  .badge.off { background: #F1F1F1; color: #888; }
+  .badge.pending { background: #FFF4E0; color: #D9820B; }
+
+  /* 状态按钮 */
+  .status-btn {
+    flex-shrink: 0;
+    font-size: 12.5px; font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 8px;
+    transition: transform .15s;
+  }
+  .status-btn:active { transform: scale(.94); }
+  .status-btn.down { background: #fff; color: #D9534F; border: 1px solid #E5B8B6; }
+  .status-btn.up { background: #6B7B3C; color: #fff; border: 1px solid #6B7B3C; }
+  .status-btn.pending { background: #FFF4E0; color: #D9820B; border: 1px solid #EED7AA; cursor: default; }
+
+  /* ---------- 弹窗 ---------- */
+  .modal-mask {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.45);
+    display: none; align-items: center; justify-content: center;
+    padding: 0 30px;
+  }
+  .modal-mask.show { display: flex; }
+  .modal {
+    width: 100%; max-width: 320px;
+    background: #fff; border-radius: 16px;
+    padding: 24px 20px 18px;
+    text-align: center;
+    animation: pop .2s ease;
+  }
+  @keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-icon {
+    width: 56px; height: 56px; margin: 0 auto 12px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #FFF4E0;
+  }
+  .modal-icon svg { width: 30px; height: 30px; color: #D9820B; }
+  .modal-title { font-size: 17px; font-weight: 700; color: #1a1a1a; }
+  .modal-desc { font-size: 13px; color: #666; margin-top: 8px; line-height: 1.6; }
+  .modal-desc .name { color: #6B7B3C; font-weight: 600; }
+  .modal-btns { display: flex; gap: 12px; margin-top: 22px; }
+  .modal-btn {
+    flex: 1; padding: 11px 0; border-radius: 10px;
+    font-size: 15px; font-weight: 600;
+  }
+  .modal-btn.cancel { background: #F0F0F0; color: #666; }
+  .modal-btn.confirm { background: #6B7B3C; color: #fff; }
+  .modal-btn:active { transform: scale(.97); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%) translateY(8px);
+    background: rgba(0,0,0,.72); color: #fff;
+    font-size: 12.5px; padding: 9px 18px; border-radius: 20px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 顶部导航 -->
+  <header class="nav">
+    <button class="nav-btn" onclick="history.back()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="nav-title">商品管理</div>
+    <div class="nav-right"></div>
+  </header>
+
+  <!-- 分类 Tab -->
+  <div class="cat-tabs" id="catTabs"></div>
+
+  <!-- 商品列表 -->
+  <section class="prod-list" id="prodList"></section>
+
+  <!-- 审核弹窗 -->
+  <div class="modal-mask" id="modal">
+    <div class="modal">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9.2"/>
+          <path d="M12 8v5M12 15.5h.01"/>
+        </svg>
+      </div>
+      <div class="modal-title">下架需经平台审核</div>
+      <div class="modal-desc">确认将商品「<span class="name" id="modalName"></span>」提交下架申请？<br>平台审核通过后才能完成下架。</div>
+      <div class="modal-btns">
+        <button class="modal-btn cancel" id="modalCancel">取消</button>
+        <button class="modal-btn confirm" id="modalConfirm">提交审核</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  // ------- 商品数据 -------
+  var IMG = {
+    sofa: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Nordic%20minimalist%20living%20room%20scene%2C%20light%20green%20fabric%20sofa%20with%20round%20solid%20wood%20coffee%20table%2C%20green%20plant%20and%20books%20on%20table%2C%20bright%20natural%20light%2C%20photorealistic%20furniture%20photography&image_size=square",
+    skincare: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Skincare%20set%20of%20three%20cosmetic%20bottles%20with%20gold%20caps%2C%20toner%20lotion%20and%20cream%20bottles%2C%20fresh%20light%20green%20background%20with%20green%20leaves%2C%20clean%20high-end%20product%20photography&image_size=square",
+    earbuds: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=White%20true%20wireless%20bluetooth%20earbuds%20with%20open%20charging%20case%2C%20minimalist%20product%20photography%20on%20pure%20white%20background%2C%20clean%20studio%20lighting&image_size=square",
+    nuts: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Daily%20mixed%20nuts%20and%20dried%20fruits%20snack%2C%20almonds%20cashews%20and%20walnuts%20in%20white%20bowl%20beside%20kraft%20paper%20bag%2C%20bright%20fresh%20food%20photography&image_size=square"
+  };
+
+  var PRODUCTS = [
+    { id: 1, name: "北欧简约实木茶几客厅家具", price: "299.00", sold: 324, cat: "家居生活", img: IMG.sofa,   status: "on" },
+    { id: 2, name: "真无线蓝牙耳机降噪运动耳机", price: "159.00", sold: 324, cat: "数码配件", img: IMG.earbuds, status: "off" },
+    { id: 3, name: "保湿补水护肤套装水乳套装", price: "189.00", sold: 532, cat: "美妆护理", img: IMG.skincare, status: "on" },
+    { id: 4, name: "每日坚果混合果干零食大礼包", price: "69.00",  sold: 891, cat: "食品饮料", img: IMG.nuts,    status: "pending" }
+  ];
+
+  var CATS = ["全部", "家居生活", "美妆护理", "数码配件", "食品饮料"];
+  var currentCat = "全部";
+
+  // ------- 工具 -------
+  var toast = document.getElementById('toast');
+  var timer = null;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.classList.remove('show'); }, 1500);
+  }
+
+  var BADGE = {
+    on:      { cls: "on",      text: "上架中" },
+    off:     { cls: "off",     text: "已下架" },
+    pending: { cls: "pending", text: "审核中" }
+  };
+  var BTN = {
+    on:      { cls: "down",    text: "下架" },
+    off:     { cls: "up",      text: "上架" },
+    pending: { cls: "pending", text: "审核中" }
+  };
+
+  function render() {
+    // 分类
+    var catHtml = "";
+    CATS.forEach(function (c) {
+      catHtml += '<div class="cat-tab' + (c === currentCat ? ' active' : '') + '" data-cat="' + c + '">' + c + '</div>';
+    });
+    document.getElementById('catTabs').innerHTML = catHtml;
+    document.getElementById('catTabs').querySelectorAll('.cat-tab').forEach(function (el) {
+      el.addEventListener('click', function () {
+        currentCat = el.getAttribute('data-cat');
+        render();
+      });
+    });
+
+    // 商品
+    var list = PRODUCTS.filter(function (p) { return currentCat === "全部" || p.cat === currentCat; });
+    var html = "";
+    list.forEach(function (p) {
+      var b = BADGE[p.status];
+      var btn = BTN[p.status];
+      html +=
+        '<div class="prod-card">' +
+          '<div class="prod-img"><img src="' + p.img + '" alt="' + p.name + '"></div>' +
+          '<div class="prod-info">' +
+            '<div class="prod-name">' + p.name + '</div>' +
+            '<div class="prod-meta"><span class="prod-cat">' + p.cat + '</span></div>' +
+            '<div class="prod-bottom">' +
+              '<div>' +
+                '<div class="prod-price"><span class="yen">¥</span>' + p.price + '</div>' +
+                '<div class="prod-sold">已售 ' + p.sold + '</div>' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:8px">' +
+                '<span class="badge ' + b.cls + '">' + b.text + '</span>' +
+                '<button class="status-btn ' + btn.cls + '" data-id="' + p.id + '"' + (p.status === "pending" ? ' disabled' : '') + '>' + btn.text + '</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    });
+    document.getElementById('prodList').innerHTML = html;
+
+    // 事件绑定
+    document.querySelectorAll('.status-btn').forEach(function (btn) {
+      if (btn.disabled) return;
+      btn.addEventListener('click', function () {
+        var p = PRODUCTS.find(function (x) { return x.id == btn.getAttribute('data-id'); });
+        if (p.status === "on") { openModal(p); }
+        else if (p.status === "off") { p.status = "on"; render(); showToast('「' + p.name + '」已上架'); }
+      });
+    });
+  }
+
+  // ------- 审核弹窗 -------
+  var modal = document.getElementById('modal');
+  var pendingId = null;
+  function openModal(p) {
+    pendingId = p.id;
+    document.getElementById('modalName').textContent = p.name;
+    modal.classList.add('show');
+  }
+  function closeModal() { modal.classList.remove('show'); pendingId = null; }
+
+  document.getElementById('modalCancel').addEventListener('click', closeModal);
+  document.getElementById('modalConfirm').addEventListener('click', function () {
+    var p = PRODUCTS.find(function (x) { return x.id == pendingId; });
+    if (p) { p.status = "pending"; showToast('「' + p.name + '」下架申请已提交平台审核'); }
+    closeModal();
+    render();
+  });
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+
+  render();
+</script>
+</body>
+</html>
