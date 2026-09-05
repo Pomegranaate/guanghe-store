@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>采购详情</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    background: #e9e9e9;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { border: none; background: none; cursor: pointer; font-family: inherit; }
+  .page {
+    max-width: 414px; margin: 0 auto; min-height: 100vh;
+    background: #F5F5F5; padding-bottom: 40px; position: relative;
+  }
+  .nav { display: flex; align-items: center; padding: 14px 14px; background: #fff; position: sticky; top: 0; z-index: 50; }
+  .nav-btn { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #F0F0F0; }
+  .nav-btn svg { width: 18px; height: 18px; color: #333; }
+  .nav-title { flex: 1; text-align: center; font-size: 17px; font-weight: 600; letter-spacing: 1px; }
+
+  .status-strip {
+    margin: 14px 14px 0; padding: 16px;
+    background: linear-gradient(120deg, #6B7B3C, #4A5D23);
+    border-radius: 14px; color: #fff;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .status-strip .st-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .status-strip svg { width: 24px; height: 24px; color: #fff; }
+  .status-strip .st-title { font-size: 16px; font-weight: 700; }
+  .status-strip .st-sub { font-size: 12px; opacity: .85; margin-top: 3px; }
+
+  .block { margin: 14px 14px 0; background: #fff; border-radius: 14px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
+  .block-head { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; display: flex; align-items: center; }
+  .block-head::before { content: ''; width: 4px; height: 14px; border-radius: 2px; background: #6B7B3C; margin-right: 8px; }
+  .info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; }
+  .info-row .k { color: #999; }
+  .info-row .v { color: #333; font-weight: 600; text-align: right; flex: 1; margin-left: 12px; }
+  .info-row .v.hl { color: #C81623; font-weight: 700; }
+
+  /* 商品条 */
+  .goods { display: flex; gap: 12px; padding-bottom: 6px; }
+  .goods-img { width: 68px; height: 68px; border-radius: 10px; overflow: hidden; background: #f4f4f2; flex-shrink: 0; }
+  .goods-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .goods-info { flex: 1; min-width: 0; }
+  .goods-name { font-size: 14px; color: #222; line-height: 1.4; }
+  .goods-cat { margin-top: 6px; font-size: 12px; color: #999; }
+  .goods-rate { margin-top: 8px; display: flex; align-items: center; gap: 10px; }
+  .goods-rate .amt { font-size: 13px; color: #999; }
+  .goods-rate .amt b { font-size: 14px; color: #222; }
+
+  /* 物流 */
+  .logi-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #F3F3F3; }
+  .logi-corp { font-size: 14px; font-weight: 700; color: #222; display: flex; align-items: center; gap: 7px; }
+  .logi-corp .truck { width: 30px; height: 30px; border-radius: 8px; background: #EFF3E3; display: flex; align-items: center; justify-content: center; }
+  .logi-corp svg { width: 17px; height: 17px; color: #6B7B3C; }
+  .logi-copy { font-size: 11px; color: #B9C291; padding: 5px 10px; border: 1px solid #D6DFC2; border-radius: 7px; }
+  .logi-no { margin-top: 8px; font-size: 12px; color: #999; }
+
+  .timeline { margin-top: 16px; padding-left: 4px; }
+  .tl-item { position: relative; padding: 0 0 22px 24px; border-left: 2px solid #E3E6DC; }
+  .tl-item:last-child { border-left: 2px solid transparent; padding-bottom: 0; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -6px; top: 2px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #D5DAD0; border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #D5DAD0;
+  }
+  .tl-item.current::before { background: #6B7B3C; box-shadow: 0 0 0 2px #B9C291; }
+  .tl-item.up::before { background: #6B7B3C; box-shadow: 0 0 0 2px #B9C291; }
+  .tl-text { font-size: 13px; color: #999; }
+  .tl-item.current .tl-text { color: #4A5D23; font-weight: 700; }
+  .tl-item.up .tl-text { color: #333; font-weight: 600; }
+  .tl-time { font-size: 11px; color: #bbb; margin-top: 3px; }
+
+  .empty { text-align: center; color: #bbb; padding: 70px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="nav">
+    <button class="nav-btn" onclick="history.back()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="nav-title">采购详情</div>
+  </header>
+
+  <div id="pageBody"></div>
+
+</div>
+
+<script>
+  var KEY = "gm_orders";
+  var SEED = [
+    { id: "OR20260903015", cust: "陈静", item: "北欧简约实木茶几客厅家具", cat: "家居生活", img: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Nordic%20minimalist%20living%20room%20scene%2C%20light%20green%20fabric%20sofa%20with%20round%20solid%20wood%20coffee%20table%2C%20green%20plant%20and%20books%20on%20table%2C%20bright%20natural%20light%2C%20photorealistic%20furniture%20photography&image_size=square", down: "399.00", pay: "199.00", date: "2026-09-03 20:18", status: "已采购" }
+  ];
+  function loadOrders() {
+    var raw = localStorage.getItem(KEY);
+    if (raw) { try { return JSON.parse(raw); } catch (e) {} }
+    var list = SEED.map(function (o) { return Object.assign({}, o); });
+    localStorage.setItem(KEY, JSON.stringify(list));
+    return list;
+  }
+
+  var orders = loadOrders();
+  var id = new URLSearchParams(location.search).get("id");
+  var o = orders.find(function (x) { return x.id === id; });
+  if (!o) o = orders[orders.length - 1];
+
+  // 物流时间线数据
+  var LOGISTICS = [
+    { text: "下级已支付下单 ¥" + o.down, time: o.date, cls: "up" },
+    { text: "采购完成，支付平台采购款 ¥" + o.pay, time: "次日 10:12", cls: "up" },
+    { text: "商品已出库，光合物流揽收", time: "次日 14:30", cls: "up" },
+    { text: "运输中，已到达分拨中心", time: "次日 20:05", cls: "up" },
+    { text: "派送中，快递员预计今日送达", time: "近日 08:40", cls: "current" }
+  ];
+
+  var timeline = "";
+  LOGISTICS.forEach(function (l) {
+    timeline +=
+      '<div class="tl-item ' + l.cls + '">' +
+        '<div class="tl-text">' + l.text + '</div>' +
+        '<div class="tl-time">' + l.time + '</div>' +
+      '</div>';
+  });
+
+  var html =
+    /* 状态条 */
+    '<div class="status-strip">' +
+      '<div class="st-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12.5l-8 7-8-7 8-7z"/><path d="M4.5 12.5V5.5a1 1 0 011-1h13a1 1 0 011 1v7"/></svg></div>' +
+      '<div><div class="st-title">采购已完成</div><div class="st-sub">订单号 ' + o.id + ' · 已登录平台采购记录</div></div>' +
+    '</div>' +
+
+    /* 采购记录 */
+    '<div class="block">' +
+      '<div class="block-head">采购记录</div>' +
+      '<div class="info-row"><span class="k">采购单号</span><span class="v">' + o.id + '</span></div>' +
+      '<div class="info-row"><span class="k">下级实付金额</span><span class="v">¥' + o.down + '</span></div>' +
+      '<div class="info-row"><span class="k">平台采购款</span><span class="v hl">¥' + o.pay + '</span></div>' +
+      '<div class="info-row"><span class="k">采购时间</span><span class="v">' + o.date + '</span></div>' +
+      '<div class="info-row"><span class="k">采购状态</span><span class="v">已采购</span></div>' +
+    '</div>' +
+
+    /* 关联下级订单 */
+    '<div class="block">' +
+      '<div class="block-head">关联下级订单</div>' +
+      '<div class="goods">' +
+        '<div class="goods-img"><img src="' + o.img + '" alt=""></div>' +
+        '<div class="goods-info">' +
+          '<div class="goods-name">' + o.item + '</div>' +
+          '<div class="goods-cat">下级客户：' + o.cust + ' · ' + o.cat + '</div>' +
+          '<div class="goods-rate">' +
+            '<span class="amt">下单金额 <b>¥' + o.down + '</b></span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    /* 物流 */
+    '<div class="block">' +
+      '<div class="block-head">物流信息</div>' +
+      '<div class="logi-head">' +
+        '<div class="logi-corp"><span class="truck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15h13V6H3v9z"/><path d="M16 9h3l3 3v3h-6z"/><circle cx="7" cy="18" r="1.7"/><circle cx="17.5" cy="18" r="1.7"/></svg></span>光合物流</div>' +
+        '<span class="logi-copy">复制单号</span>' +
+      '</div>' +
+      '<div class="logi-no">运单号：GH' + o.id.slice(2) + '0098688</div>' +
+      '<div class="timeline">' + timeline + '</div>' +
+    '</div>';
+
+  document.getElementById('pageBody').innerHTML = html;
+
+  // 复制运单号
+  document.querySelector('.logi-copy').addEventListener('click', function (e) {
+    var no = 'GH' + o.id.slice(2) + '0098688';
+    (navigator.clipboard && navigator.clipboard.writeText(no));
+    e.target.textContent = "已复制";
+    setTimeout(function () { e.target.textContent = "复制单号"; }, 1500);
+  });
+</script>
+</body>
+</html>
