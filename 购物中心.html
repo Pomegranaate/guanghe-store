@@ -158,17 +158,19 @@
   .cart-btn:active { transform: scale(.88); background: #e0e4d4; }
   .cart-btn svg { width: 17px; height: 17px; color: #2D5016; }
 
-  /* 右侧悬浮购物车 */
+  /* 右侧悬浮购物车（可拖动） */
   .cart-float {
-    position: fixed; right: 16px; bottom: 108px; z-index: 90;
+    position: fixed; right: 16px; top: 58%; z-index: 90;
     width: 54px; height: 54px; border-radius: 50%;
     background: linear-gradient(150deg, #6B7B3C, #2D5016);
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 6px 18px rgba(45,80,22,.35);
     text-decoration: none;
-    transition: transform .15s;
+    transition: transform .15s, box-shadow .15s;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+    cursor: grab;
   }
-  .cart-float:active { transform: scale(.92); }
+  .cart-float.dragging { box-shadow: 0 8px 22px rgba(45,80,22,.5); cursor: grabbing; transform: scale(.92); }
   .cart-float svg { width: 26px; height: 26px; color: #fff; }
   .cart-float .badge {
     position: absolute; top: -3px; right: -3px;
@@ -467,6 +469,58 @@
 
   // 悬浮购物车：进入购物车页；初始化角标
   updBadge();
+
+  // ---------- 悬浮购物车可拖动 ----------
+  (function () {
+    var cart = document.getElementById('cartFloat');
+    if (!cart) return;
+    var dragging = false, moved = false, startY = 0, startTop = 0, currentTop = null;
+
+    function clamp(top) {
+      var vh = window.innerHeight, h = cart.offsetHeight;
+      var min = h / 2 + 40, max = vh - h / 2 - 90;
+      return Math.max(min, Math.min(max, top));
+    }
+    function setPos(top) {
+      currentTop = top;
+      cart.style.top = top + 'px';
+    }
+
+    function onStart(y) {
+      dragging = true; moved = false;
+      startY = y;
+      startTop = currentTop !== null ? currentTop : parseFloat(cart.style.top) || 0;
+      cart.classList.add('dragging');
+    }
+    function onMove(y) {
+      if (!dragging) return;
+      var d = y - startY;
+      if (Math.abs(d) > 4) moved = true;
+      setPos(clamp(startTop + d));
+    }
+    function onEnd() {
+      if (!dragging) return;
+      dragging = false;
+      cart.classList.remove('dragging');
+      if (moved) {
+        // 阻止点击跳转
+        cart.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); }, { once: true });
+      }
+    }
+
+    cart.addEventListener('pointerdown', function (e) { e.preventDefault(); onStart(e.clientY); });
+    window.addEventListener('pointermove', function (e) { onMove(e.clientY); });
+    window.addEventListener('pointerup', onEnd);
+    window.addEventListener('pointercancel', onEnd);
+    // 触摸支持
+    cart.addEventListener('touchstart', function (e) { onStart(e.touches[0].clientY); }, { passive: false });
+    cart.addEventListener('touchmove', function (e) { e.preventDefault(); onMove(e.touches[0].clientY); }, { passive: false });
+    cart.addEventListener('touchend', onEnd);
+    cart.addEventListener('click', function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } });
+
+    // 初始定位在当前 58% 高度
+    setPos(clamp(window.innerHeight * 0.58));
+  })();
 </script>
 </body>
 </html>
