@@ -105,9 +105,10 @@
   .order-no { font-size: 12.5px; color: #333; font-weight: 600; }
   .status-badge { font-size: 11px; padding: 2px 9px; border-radius: 10px; }
   .st-待处理 { background: #FDE2E2; color: #D9534F; }
-  .st-已处理 { background: #EAF0FB; color: #4A76D0; }
+  .st-已收款 { background: #EAF0FB; color: #4A76D0; }
   .st-未采购 { background: #FFF4E0; color: #D9820B; }
   .st-采购中 { background: #FFF4E0; color: #D9820B; }
+  .st-已驳回 { background: #FDE2E2; color: #D9534F; }
   .st-已采购 { background: #E4F4E9; color: #1F9D55; }
 
   .order-main { padding: 10px 0; display: flex; gap: 11px; }
@@ -142,6 +143,7 @@
   .action-btn.primary { background: #6B7B3C; color: #fff; }
   .action-btn.outline { background: #fff; color: #D9820B; border: 1px solid #E8CE9C; }
   .action-btn.view { background: #fff; color: #4A76D0; border: 1px solid #C7D6F0; margin-right: 8px; }
+  .action-btn.reject { background: #fff; color: #D9534F; border: 1px solid #F0C4C0; }
   .action-btn.disabled { background: #F0F0F0; color: #aaa; cursor: default; }
   .order-foot .btns { display: flex; }
 
@@ -181,7 +183,7 @@
   <!-- 凭证查看器 -->
   <div class="viewer" id="viewer">
     <div class="viewer-head">
-      <span class="vt" id="viewerTitle">下级支付凭证</span>
+      <span class="vt" id="viewerTitle">客户支付凭证</span>
       <button class="vc" id="viewerClose">关闭</button>
     </div>
     <div class="viewer-body" id="viewerBody"></div>
@@ -200,7 +202,7 @@
     proof: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=smartphone%20mobile%20payment%20screenshot%2C%20WeChat%20transfer%20success%20screen%20showing%20amount%20399.00%20yuan%20paid%20to%20upstream%20merchant%2C%20transfer%20receipt%20detail%20with%20green%20checkmark%2C%20screenshot%20on%20white%20background%2C%20real%20phone%20UI&image_size=portrait_4_3"
   };
 
-  // 状态流转：待处理 -> 已处理 -> 未采购 -> (去采购) -> 采购中 -> (平台审核) -> 已采购
+  // 状态流转：待处理 -> 已收款 -> 未采购 -> (去采购) -> 采购中/已驳回 -> (平台审核) -> 已采购
   // 订单为阖家草本健康套餐：5件商品，合计 ¥399
   var PRODUCTS = [
     { name: "北欧简约实木茶几客厅家具", img: IMG.sofa },
@@ -220,25 +222,26 @@
     return list;
   }
   var SEED = [
-    { id: "OR20260905001", cust: "李一", cat: "家居生活", down: "399.00", pay: "199.00", date: "2026-09-05 10:24", status: "待处理" },
-    { id: "OR20260905002", cust: "王芳", cat: "数码配件", down: "399.00", pay: "199.00", date: "2026-09-05 09:12", status: "待处理" },
-    { id: "OR20260905003", cust: "张伟", cat: "美妆护理", down: "399.00", pay: "199.00", date: "2026-09-05 08:35", status: "待处理" },
-    { id: "OR20260905004", cust: "刘敏", cat: "食品饮料", down: "399.00", pay: "199.00", date: "2026-09-05 08:02", status: "待处理" },
-    { id: "OR20260904005", cust: "赵磊", cat: "家居生活", down: "399.00", pay: "199.00", date: "2026-09-04 22:47", status: "待处理" },
-    { id: "OR20260904006", cust: "陈晨", cat: "数码配件", down: "399.00", pay: "199.00", date: "2026-09-04 21:30", status: "待处理" },
-    { id: "OR20260904007", cust: "孙丽", cat: "美妆护理", down: "399.00", pay: "199.00", date: "2026-09-04 19:55", status: "待处理" },
-    { id: "OR20260904008", cust: "周军", cat: "食品饮料", down: "399.00", pay: "199.00", date: "2026-09-04 18:20", status: "待处理" },
-    { id: "OR20260904009", cust: "吴丹", cat: "家居生活", down: "399.00", pay: "199.00", date: "2026-09-04 17:06", status: "待处理" },
-    { id: "OR20260904010", cust: "郑强", cat: "数码配件", down: "399.00", pay: "199.00", date: "2026-09-04 15:44", status: "待处理" },
-    { id: "OR20260904011", cust: "王霞", cat: "美妆护理", down: "399.00", pay: "199.00", date: "2026-09-04 14:12", status: "待处理" },
-    { id: "OR20260904012", cust: "刘洋", cat: "食品饮料", down: "399.00", pay: "199.00", date: "2026-09-04 13:38", status: "待处理" },
-    { id: "OR20260904013", cust: "张敏", cat: "美妆护理", down: "399.00", pay: "199.00", date: "2026-09-04 16:40", status: "未采购" },
-    { id: "OR20260904014", cust: "刘强", cat: "食品饮料", down: "399.00", pay: "199.00", date: "2026-09-04 14:05", status: "采购中" },
-    { id: "OR20260903015", cust: "陈静", cat: "家居生活", down: "399.00", pay: "199.00", date: "2026-09-03 20:18", status: "已采购" },
-    { id: "OR20260902016", cust: "徐芳", cat: "数码配件", down: "399.00", pay: "199.00", date: "2026-09-02 11:09", status: "已采购" }
+    { id: "OR20260905001", cust: "李一", cat: "家居生活", down: "399.00", pay: "200.00", date: "2026-09-05 10:24", status: "待处理" },
+    { id: "OR20260905002", cust: "王芳", cat: "数码配件", down: "399.00", pay: "200.00", date: "2026-09-05 09:12", status: "待处理" },
+    { id: "OR20260905003", cust: "张伟", cat: "美妆护理", down: "399.00", pay: "200.00", date: "2026-09-05 08:35", status: "待处理" },
+    { id: "OR20260905004", cust: "刘敏", cat: "食品饮料", down: "399.00", pay: "200.00", date: "2026-09-05 08:02", status: "待处理" },
+    { id: "OR20260904005", cust: "赵磊", cat: "家居生活", down: "399.00", pay: "200.00", date: "2026-09-04 22:47", status: "待处理" },
+    { id: "OR20260904006", cust: "陈晨", cat: "数码配件", down: "399.00", pay: "200.00", date: "2026-09-04 21:30", status: "待处理" },
+    { id: "OR20260904007", cust: "孙丽", cat: "美妆护理", down: "399.00", pay: "200.00", date: "2026-09-04 19:55", status: "待处理" },
+    { id: "OR20260904008", cust: "周军", cat: "食品饮料", down: "399.00", pay: "200.00", date: "2026-09-04 18:20", status: "待处理" },
+    { id: "OR20260904009", cust: "吴丹", cat: "家居生活", down: "399.00", pay: "200.00", date: "2026-09-04 17:06", status: "待处理" },
+    { id: "OR20260904010", cust: "郑强", cat: "数码配件", down: "399.00", pay: "200.00", date: "2026-09-04 15:44", status: "待处理" },
+    { id: "OR20260904011", cust: "王霞", cat: "美妆护理", down: "399.00", pay: "200.00", date: "2026-09-04 14:12", status: "待处理" },
+    { id: "OR20260904012", cust: "刘洋", cat: "食品饮料", down: "399.00", pay: "200.00", date: "2026-09-04 13:38", status: "待处理" },
+    { id: "OR20260904013", cust: "张敏", cat: "美妆护理", down: "399.00", pay: "200.00", date: "2026-09-04 16:40", status: "未采购" },
+    { id: "OR20260904014", cust: "刘强", cat: "食品饮料", down: "399.00", pay: "200.00", date: "2026-09-04 14:05", status: "采购中", tradeNo: "CF20260904014X3K9", proofImg: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=smartphone%20bank%20or%20third%20party%20transfer%20receipt%20screenshot%20showing%20payment%20of%20200%20yuan%20to%20platform%20merchant%2C%20transfer%20success%20detail%20screen%2C%20green%20checkmark%2C%20white%20background%2C%20real%20phone%20UI&image_size=portrait_4_3" },
+    { id: "OR20260904015", cust: "钱梅", cat: "家居生活", down: "399.00", pay: "200.00", date: "2026-09-04 12:20", status: "已驳回", tradeNo: "CF20260904015R2B7", proofImg: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=smartphone%20transfer%20receipt%20screenshot%20with%20red%20rejected%20mark%2C%20amount%20200%20yuan%20to%20platform%2C%20payment%20failed%20or%20review%20rejected%20notice%2C%20white%20background%2C%20real%20phone%20UI&image_size=portrait_4_3" },
+    { id: "OR20260903016", cust: "陈静", cat: "家居生活", down: "399.00", pay: "200.00", date: "2026-09-03 20:18", status: "已采购" },
+    { id: "OR20260902017", cust: "徐芳", cat: "数码配件", down: "399.00", pay: "200.00", date: "2026-09-02 11:09", status: "已采购" }
   ];
   var KEY = "gm_orders";
-  var VER = "4"; // 种子版本，升级数据时自增以重新播种（改为多商品结构）
+  var VER = "5"; // 种子版本，升级数据时自增以重新播种（改为多商品结构）
   function loadOrders() {
     var raw = localStorage.getItem(KEY);
     if (raw && localStorage.getItem(KEY + "_v") === VER) {
@@ -257,14 +260,23 @@
   function saveOrders(list) { localStorage.setItem(KEY, JSON.stringify(list)); }
 
   var orders = loadOrders();
-  var STATUSES = ["全部", "待处理", "已处理", "未采购", "采购中", "已采购"];
+  // 已驳回并入采购中，不作为独立状态
+  var STATUSES = ["全部", "待处理", "已收款", "未采购", "采购中", "已采购"];
   var current = "全部";
   // 从 URL 参数定位到指定状态
   var params = new URLSearchParams(location.search);
   if (params.get("status") && STATUSES.indexOf(params.get("status")) > -1) current = params.get("status");
 
   // ---------- 渲染 ----------
-  function countBy(status) { return orders.filter(function (o) { return o.status === status; }).length; }
+  function statusMatch(o, status) {
+    if (status === "采购中") return o.status === "采购中" || o.status === "已驳回";
+    return o.status === status;
+  }
+  function countBy(status) {
+    return STATUSES.indexOf(status) > -1 && status !== "全部"
+      ? orders.filter(function (o) { return statusMatch(o, status); }).length
+      : orders.length;
+  }
 
   function render() {
     var pending = countBy("待处理");
@@ -288,7 +300,7 @@
     });
 
     // 列表
-    var list = current === "全部" ? orders : orders.filter(function (o) { return o.status === current; });
+    var list = current === "全部" ? orders : orders.filter(function (o) { return statusMatch(o, current); });
     var html = "";
     if (!list.length) {
       html = '<div class="empty">暂无相关订单</div>';
@@ -296,9 +308,9 @@
       list.forEach(function (o) {
         var btn = "";
         if (o.status === "待处理") btn = '<div class="btns"><button class="action-btn view" data-act="view" data-id="' + o.id + '">查看凭证</button><button class="action-btn primary" data-act="handle" data-id="' + o.id + '">确认处理</button></div>';
-        else if (o.status === "未采购") btn = '<button class="action-btn outline" data-act="purchase" data-id="' + o.id + '">去采购</button>';
-        else if (o.status === "已处理") btn = '<button class="action-btn outline" data-act="purchase" data-id="' + o.id + '">去采购</button>';
-        else if (o.status === "采购中") btn = '<span class="action-btn disabled">等待平台审核</span>';
+        else if (o.status === "未采购" || o.status === "已收款") btn = '<button class="action-btn outline" data-act="purchase" data-id="' + o.id + '">去采购</button>';
+        else if (o.status === "采购中") btn = '<div class="btns"><button class="action-btn view" data-act="viewMine" data-id="' + o.id + '">查看凭证</button><span class="action-btn disabled">等待平台审核</span></div>';
+        else if (o.status === "已驳回") btn = '<button class="action-btn outline reject" data-act="reup" data-id="' + o.id + '">重新上传</button>';
         else if (o.status === "已采购") btn = '<button class="action-btn outline" data-act="detail" data-id="' + o.id + '">查看订单详情</button>';
 
         var note = "";
@@ -312,11 +324,20 @@
         thumbHtml += '</div>';
         qtyHtml = '<div class="order-qty">阖家草本健康套餐 · 共 ' + totalQty + ' 件 · 合计 ¥' + o.down + '</div>';
 
-        if (o.status === "待处理") note = "下级已支付，待确认";
-        else if (o.status === "已处理") note = "已确认，待采购";
+        if (o.status === "待处理") note = "客户已支付，待确认";
+        else if (o.status === "已收款") note = "已确认收款，待采购";
         else if (o.status === "未采购") note = "待采购";
         else if (o.status === "采购中") note = "支付截图平台审核中";
+        else if (o.status === "已驳回") note = "平台审核未通过，请重新上传";
         else if (o.status === "已采购") note = "采购完成";
+
+        // 金额展示：采购阶段统一显示"需要支付¥200元采购货款"
+        var amtHtml = "";
+        if (o.status === "未采购" || o.status === "采购中" || o.status === "已驳回" || o.status === "已采购") {
+          amtHtml = '<span class="amt-pay" style="font-size:13px;">需要支付 ¥' + o.pay + ' 元采购货款</span>';
+        } else {
+          amtHtml = '<span class="amt-down">客户支付 <b>¥' + o.down + '</b></span><span class="amt-pay">应付 ¥' + o.pay + '</span>';
+        }
 
         html +=
           '<div class="order-card" data-id="' + o.id + '">' +
@@ -325,14 +346,11 @@
               '<span class="status-badge st-' + o.status + '">' + o.status + '</span>' +
             '</div>' +
             '<div class="order-main" style="flex-direction:column;gap:0;">' +
-              '<div class="order-cust">下级：' + o.cust + ' · ' + o.cat + ' · ' + o.date + '</div>' +
+              '<div class="order-cust">客户：' + o.cust + ' · ' + o.cat + ' · ' + o.date + '</div>' +
               thumbHtml +
               qtyHtml +
             '</div>' +
-            '<div class="order-amount" style="padding-top:8px;">' +
-              '<span class="amt-down">下级支付 <b>¥' + o.down + '</b></span>' +
-              '<span class="amt-pay">应付 ¥' + o.pay + '</span>' +
-            '</div>' +
+            '<div class="order-amount" style="padding-top:8px;">' + amtHtml + '</div>' +
             '<div class="order-foot">' +
               '<span class="note">' + note + '</span>' +
               btn +
@@ -348,14 +366,16 @@
         var o = orders.find(function (x) { return x.id === b.getAttribute('data-id'); });
         var act = b.getAttribute('data-act');
         if (act === "handle") {
-          o.status = "已处理"; saveOrders(orders);
+          o.status = "已收款"; saveOrders(orders);
           location.href = "未采购.html";
-        } else if (act === "purchase") {
+        } else if (act === "purchase" || act === "reup") {
           location.href = "订单详情.html?id=" + o.id;
         } else if (act === "detail") {
           location.href = "采购详情.html?id=" + o.id;
         } else if (act === "view") {
           openViewer(o);
+        } else if (act === "viewMine") {
+          openMyProof(o);
         }
       });
     });
@@ -366,9 +386,17 @@
   document.getElementById('viewerClose').addEventListener('click', function () { viewer.classList.remove('show'); });
   viewer.addEventListener('click', function (e) { if (e.target === viewer) viewer.classList.remove('show'); });
   function openViewer(o) {
-    document.getElementById('viewerTitle').textContent = '下级 ' + o.cust + ' 的支付凭证';
+    document.getElementById('viewerTitle').textContent = '客户 ' + o.cust + ' 的支付凭证';
     document.getElementById('viewerBody').innerHTML = '<img src="' + IMG.proof + '" alt="支付凭证">';
-    document.getElementById('viewerSub').textContent = '订单 ' + o.id + ' · 下级支付 ¥' + o.down + ' · 上传于 ' + o.date;
+    document.getElementById('viewerSub').textContent = '订单 ' + o.id + ' · 客户支付 ¥' + o.down + ' · 上传于 ' + o.date;
+    viewer.classList.add('show');
+  }
+  // ---------- 查看自己上传的采购付款凭证与交易单号 ----------
+  function openMyProof(o) {
+    document.getElementById('viewerTitle').textContent = '我上传的采购付款凭证';
+    var img = o.proofImg ? '<img src="' + o.proofImg + '" alt="采购凭证">' : '<div style="text-align:center;color:#999;padding:30px 10px;font-size:13px;">暂无上传凭证</div>';
+    document.getElementById('viewerBody').innerHTML = img;
+    document.getElementById('viewerSub').textContent = '订单 ' + o.id + ' · 交易单号：' + (o.tradeNo || '未填写');
     viewer.classList.add('show');
   }
 

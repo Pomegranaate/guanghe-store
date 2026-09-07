@@ -55,9 +55,12 @@
     box-shadow: 0 2px 10px rgba(0,0,0,.04);
   }
   .block-head { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; display: flex; align-items: center; }
+  .block-head.upload-head { justify-content: space-between; }
+  .example-entry { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: #6B7B3C; background: #F1F4E6; padding: 6px 12px; border-radius: 16px; }
+  .example-entry svg { width: 15px; height: 15px; }
   .block-head::before { content: ''; width: 4px; height: 14px; border-radius: 2px; background: #6B7B3C; margin-right: 8px; }
 
-  /* 订单/下级信息 */
+  /* 订单/客户信息 */
   .info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; }
   .info-row .k { color: #999; }
   .info-row .v { color: #333; font-weight: 600; }
@@ -204,13 +207,13 @@
   <!-- 金额卡 -->
   <section class="amount-card">
     <div class="amount-label">需向平台支付采购款</div>
-    <div class="amount-pay"><span class="yen">¥</span><span id="amountPay">199.00</span></div>
-    <div class="amount-save">下级已支付 <b id="amountDown">¥399.00</b>，已为您代付差价</div>
+    <div class="amount-pay"><span class="yen">¥</span><span id="amountPay">200.00</span></div>
+    <div class="amount-save">客户已支付 <b id="amountDown">¥399.00</b>，已为您代付差价</div>
   </section>
 
-  <!-- 下级订单信息 -->
+  <!-- 客户订单信息 -->
   <section class="block">
-    <div class="block-head">下级订单信息</div>
+    <div class="block-head">客户订单信息</div>
     <div id="orderInfo"></div>
   </section>
 
@@ -260,7 +263,7 @@
           </svg>
           <img class="pay-qr-img" id="wxPayImg" alt="微信收款码">
         </div>
-        <div class="qr-tip">请扫码支付采购货款<br>¥199.00</div>
+        <div class="qr-tip">请扫码支付采购货款<br>¥200.00</div>
         <div class="qr-enlarge">点击二维码可放大</div>
       </div>
     </div>
@@ -295,7 +298,7 @@
         </svg>
           <img class="pay-qr-img" id="aliPayImg" alt="支付宝收款码">
         </div>
-        <div class="qr-tip">请扫码支付采购货款<br>¥199.00</div>
+        <div class="qr-tip">请扫码支付采购货款<br>¥200.00</div>
         <div class="qr-enlarge">点击二维码可放大</div>
       </div>
     </div>
@@ -318,7 +321,15 @@
 
   <!-- 上传支付截图 -->
   <section class="block">
-    <div class="block-head">上传支付凭证</div>
+    <div class="block-head upload-head">
+      <span>上传支付凭证</span>
+      <a class="example-entry" href="上传示例.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l7 4v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7z"/><path d="M9.5 12l1.8 1.8 3.2-3.6"/>
+        </svg>
+        上传示例
+      </a>
+    </div>
     <div class="upload-box" id="uploadBox">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/>
@@ -328,8 +339,8 @@
       <div class="uploaded-tip" id="uploadedTip">支付凭证已上传</div>
     </div>
     <div class="trade-row">
-      <span class="trade-label">流水号 <span class="req">*</span></span>
-      <input class="trade-input" id="tradeNo" placeholder="请输入流水号" maxlength="40">
+      <span class="trade-label">交易单号 <span class="req">*</span></span>
+      <input class="trade-input" id="tradeNo" placeholder="请输入交易单号" maxlength="40">
     </div>
   </section>
 
@@ -376,10 +387,10 @@
     return list;
   }
   var SEED = [
-    { id: "OR20260905001", cust: "李一", cat: "家居生活", down: "399.00", pay: "199.00", date: "2026-09-05 10:24", status: "待处理" },
-    { id: "OR20260904003", cust: "张敏", cat: "美妆护理", down: "399.00", pay: "199.00", date: "2026-09-04 16:40", status: "未采购" },
-    { id: "OR20260904004", cust: "刘强", cat: "食品饮料", down: "399.00", pay: "199.00", date: "2026-09-04 14:05", status: "采购中" },
-    { id: "OR20260903005", cust: "陈静", cat: "家居生活", down: "399.00", pay: "199.00", date: "2026-09-03 20:18", status: "已采购" }
+    { id: "OR20260905001", cust: "李一", cat: "家居生活", down: "399.00", pay: "200.00", date: "2026-09-05 10:24", status: "待处理" },
+    { id: "OR20260904003", cust: "张敏", cat: "美妆护理", down: "399.00", pay: "200.00", date: "2026-09-04 16:40", status: "未采购" },
+    { id: "OR20260904004", cust: "刘强", cat: "食品饮料", down: "399.00", pay: "200.00", date: "2026-09-04 14:05", status: "已驳回" },
+    { id: "OR20260903005", cust: "陈静", cat: "家居生活", down: "399.00", pay: "200.00", date: "2026-09-03 20:18", status: "已采购" }
   ];
   function loadOrders() {
     var raw = localStorage.getItem(KEY);
@@ -401,7 +412,7 @@
   var order = orders.find(function (o) { return o.id === id; });
   if (!order) order = orders[0];
 
-  // ---------- 渲染下级订单信息 ----------
+  // ---------- 渲染客户订单信息 ----------
   var items = order.items && order.items.length ? order.items : [{ name: order.item || "商品", img: order.img, price: order.down }];
   var totalQty = 0;
   var itemListHtml = '<div class="item-list">';
@@ -423,11 +434,11 @@
 
   var infoHtml =
     '<div class="info-row"><span class="k">订单号</span><span class="v">' + order.id + '</span></div>' +
-    '<div class="info-row"><span class="k">下级客户</span><span class="v">' + order.cust + '</span></div>' +
+    '<div class="info-row"><span class="k">客户</span><span class="v">' + order.cust + '</span></div>' +
     '<div class="info-row"><span class="k">下单时间</span><span class="v">' + order.date + '</span></div>' +
     '<div class="info-row"><span class="k">订单商品</span><span class="v">阖家草本健康套餐 · 共 ' + totalQty + ' 件</span></div>' +
     itemListHtml +
-    '<div class="info-row"><span class="k">下级下单金额</span><span class="v hl">¥' + order.down + '</span></div>' +
+    '<div class="info-row"><span class="k">客户下单金额</span><span class="v hl">¥' + order.down + '</span></div>' +
     '<div class="info-row"><span class="k">您应付采购款</span><span class="v hl">¥' + order.pay + '</span></div>';
   document.getElementById('orderInfo').innerHTML = infoHtml;
   document.getElementById('amountPay').textContent = order.pay;
@@ -503,13 +514,26 @@
   // ---------- 提交审核 ----------
   var submitBtn = document.getElementById('submitBtn');
   var tradeNo = document.getElementById('tradeNo');
+
+  // 若被驳回，预填上次凭证与交易单号，便于重新上传
+  if (order.status === "已驳回") {
+    if (order.tradeNo) { tradeNo.value = order.tradeNo; }
+    if (order.proofImg) {
+      preview.src = order.proofImg;
+      preview.classList.add('show');
+      uploadedTip.classList.add('show');
+      document.getElementById('uploadBox').classList.add('active');
+      hasUpload = true;
+    }
+  }
+
   function updateSubmit() {
     if (order.status === "采购中" || order.status === "已采购") {
       submitBtn.disabled = true;
       submitBtn.textContent = order.status === "采购中" ? "等待平台审核" : "采购已完成";
     } else {
       submitBtn.disabled = !(hasUpload && tradeNo.value.trim());
-      submitBtn.textContent = "提交审核";
+      submitBtn.textContent = order.status === "已驳回" ? "重新提交审核" : "提交审核";
     }
   }
   tradeNo.addEventListener('input', updateSubmit);
@@ -525,11 +549,12 @@
 
   submitBtn.addEventListener('click', function () {
     if (!hasUpload) { showToast("请先上传支付截图"); return; }
-    if (!tradeNo.value.trim()) { showToast("请填写流水号"); return; }
+    if (!tradeNo.value.trim()) { showToast("请填写交易单号"); return; }
     order.tradeNo = tradeNo.value.trim();
+    order.proofImg = preview.src;
     order.status = "采购中";
     saveOrders(orders);
-    showToast("支付凭证已提交，等待平台审核");
+    showToast("支付凭证已重新提交，等待平台审核");
     setTimeout(function () { location.href = "订单管理.html?status=采购中"; }, 1200);
   });
 

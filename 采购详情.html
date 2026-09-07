@@ -96,7 +96,7 @@
 <script>
   var KEY = "gm_orders";
   var SEED = [
-    { id: "OR20260903015", cust: "陈静", item: "北欧简约实木茶几客厅家具", cat: "家居生活", img: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Nordic%20minimalist%20living%20room%20scene%2C%20light%20green%20fabric%20sofa%20with%20round%20solid%20wood%20coffee%20table%2C%20green%20plant%20and%20books%20on%20table%2C%20bright%20natural%20light%2C%20photorealistic%20furniture%20photography&image_size=square", down: "399.00", pay: "199.00", date: "2026-09-03 20:18", status: "已采购" }
+    { id: "OR20260903015", cust: "陈静", item: "北欧简约实木茶几客厅家具", cat: "家居生活", img: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Nordic%20minimalist%20living%20room%20scene%2C%20light%20green%20fabric%20sofa%20with%20round%20solid%20wood%20coffee%20table%2C%20green%20plant%20and%20books%20on%20table%2C%20bright%20natural%20light%2C%20photorealistic%20furniture%20photography&image_size=square", down: "399.00", pay: "200.00", date: "2026-09-03 20:18", status: "已采购" }
   ];
   function loadOrders() {
     var raw = localStorage.getItem(KEY);
@@ -113,7 +113,7 @@
 
   // 物流时间线数据
   var LOGISTICS = [
-    { text: "下级已支付下单 ¥" + o.down, time: o.date, cls: "up" },
+    { text: "客户已支付下单 ¥" + o.down, time: o.date, cls: "up" },
     { text: "采购完成，支付平台采购款 ¥" + o.pay, time: "次日 10:12", cls: "up" },
     { text: "商品已出库，光合物流揽收", time: "次日 14:30", cls: "up" },
     { text: "运输中，已到达分拨中心", time: "次日 20:05", cls: "up" },
@@ -140,20 +140,20 @@
     '<div class="block">' +
       '<div class="block-head">采购记录</div>' +
       '<div class="info-row"><span class="k">采购单号</span><span class="v">' + o.id + '</span></div>' +
-      '<div class="info-row"><span class="k">下级实付金额</span><span class="v">¥' + o.down + '</span></div>' +
+      '<div class="info-row"><span class="k">客户支付金额</span><span class="v">¥' + o.down + '</span></div>' +
       '<div class="info-row"><span class="k">平台采购款</span><span class="v hl">¥' + o.pay + '</span></div>' +
       '<div class="info-row"><span class="k">采购时间</span><span class="v">' + o.date + '</span></div>' +
       '<div class="info-row"><span class="k">采购状态</span><span class="v">已采购</span></div>' +
     '</div>' +
 
-    /* 关联下级订单 */
+    /* 关联客户订单 */
     '<div class="block">' +
-      '<div class="block-head">关联下级订单</div>' +
+      '<div class="block-head">关联客户订单</div>' +
       '<div class="goods">' +
         '<div class="goods-img"><img src="' + o.img + '" alt=""></div>' +
         '<div class="goods-info">' +
           '<div class="goods-name">' + o.item + '</div>' +
-          '<div class="goods-cat">下级客户：' + o.cust + ' · ' + o.cat + '</div>' +
+          '<div class="goods-cat">客户：' + o.cust + ' · ' + o.cat + '</div>' +
           '<div class="goods-rate">' +
             '<span class="amt">下单金额 <b>¥' + o.down + '</b></span>' +
           '</div>' +
