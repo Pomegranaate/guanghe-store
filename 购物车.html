@@ -95,7 +95,7 @@
   </header>
 
   <div class="bundle-tip" id="bundleTip" style="display:none;">
-    阖家草本健康套餐 · 满 <b>6 件</b> 合计 <b>¥399.00</b>
+    阖家草本健康套餐 · 满 <b>5 件</b> 合计 <b>¥399.00</b>
   </div>
 
   <section class="cart-list" id="cartList"></section>
@@ -125,7 +125,7 @@
 
 <script>
   var CART_KEY = "gm_cart";
-  var UNIT = "66.50";
+  var UNIT = "79.80";
   var cart = loadCart();
   var sel = {};
 
@@ -204,7 +204,10 @@
     } else if (add) {
       var an = decodeURIComponent(add.getAttribute('data-add'));
       var ai = cart.find(function (x) { return x.name === an; });
-      if (ai) { ai.count = (ai.count || 1) + 1; saveCart(); render(); }
+      if (ai) {
+        if (totalPieces() >= 5) { showToast('购物车最多 5 件，已达上限'); return; }
+        ai.count = (ai.count || 1) + 1; saveCart(); render();
+      }
     } else if (min) {
       var mn = decodeURIComponent(min.getAttribute('data-min'));
       var mi = cart.find(function (x) { return x.name === mn; });

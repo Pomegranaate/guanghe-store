@@ -201,21 +201,21 @@
   };
 
   // 状态流转：待处理 -> 已处理 -> 未采购 -> (去采购) -> 采购中 -> (平台审核) -> 已采购
-  // 订单为阖家草本健康套餐：6件商品，合计 ¥399
+  // 订单为阖家草本健康套餐：5件商品，合计 ¥399
   var PRODUCTS = [
     { name: "北欧简约实木茶几客厅家具", img: IMG.sofa },
     { name: "保湿补水护肤套装水乳套装", img: IMG.skincare },
     { name: "真无线蓝牙耳机降噪运动耳机", img: IMG.earbuds },
     { name: "每日坚果混合果干零食大礼包", img: IMG.nuts }
   ];
-  // 由订单号散列决定起始商品，凑够6件、单价66.50，合计399
+  // 由订单号散列决定起始商品，凑够5件、单价79.80，合计399
   function buildItems(o) {
     var h = 0;
     for (var i = 0; i < o.id.length; i++) h = (h + o.id.charCodeAt(i)) % 4;
     var list = [];
-    for (var k = 0; k < 6; k++) {
+    for (var k = 0; k < 5; k++) {
       var p = PRODUCTS[(h + k) % 4];
-      list.push({ name: p.name, img: p.img, count: 1, price: "66.50" });
+      list.push({ name: p.name, img: p.img, count: 1, price: "79.80" });
     }
     return list;
   }

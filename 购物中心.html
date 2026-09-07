@@ -416,8 +416,8 @@
 
   // ---------- 购物车 localStorage ----------
   var CART_KEY = "gm_cart";
-  // 套餐单件价：6件凑满399
-  var UNIT = "66.50";
+  // 套餐单件价：5件凑满399
+  var UNIT = "79.80";
   function loadCart() {
     try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch (e) { return []; }
   }
@@ -430,14 +430,16 @@
       e.stopPropagation();
       var card = btn.closest('.prod-card');
       var data = readCard(card);
-      // 加入购物车（套餐单件价）
       var c = loadCart();
+      var cur = cartPieces(c);
+      if (cur >= 5) { showToast('购物车最多 5 件，已达上限'); return; }
+      // 加入购物车（套餐单件价：5件凑满399）
       var hit = c.find(function (x) { return x.name === data.name; });
       if (hit) { hit.count = (hit.count || 1) + 1; }
       else { c.push({ name: data.name, img: data.img, price: UNIT, count: 1 }); }
       saveCart(c);
       updBadge();
-      showToast('已加入购物车（' + cartPieces(c) + '/6 件）');
+      showToast('已加入购物车（' + cartPieces(c) + '/5 件）');
     });
   });
 
