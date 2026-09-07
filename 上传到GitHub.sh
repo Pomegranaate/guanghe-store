@@ -16,8 +16,8 @@ if ! gh auth status >/dev/null 2>&1; then
   exit 1
 fi
 
-# 仅上传 .html 文件（忽略截图 png、脚本 rb 等）
-FILES=($(ls *.html 2>/dev/null))
+# 上传 HTML 文件 + 示例凭证图片（忽略截图 png、脚本 rb 等）
+FILES=($(ls *.html 2>/dev/null) 店铺采购付款凭证实例图片.png)
 if [ -z "${FILES:-}" ]; then
   echo "⚠️  当前目录没有 HTML 文件。"
   exit 1
